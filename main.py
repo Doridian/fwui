@@ -53,8 +53,7 @@ class PortConfig:
         if voltage == 0:
             return None
 
-        voltage /= 1000000
-        current = self.charge.current() / 1000000
+        current = self.charge.current()
         online = self.charge.online()
         if current < 0 or voltage < 0 or not online:
             invert = not invert

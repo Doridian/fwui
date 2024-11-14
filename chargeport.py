@@ -11,10 +11,10 @@ class ChargePort:
             return int(f.read(), 10)
         
     def current(self) -> int:
-        return self.read_number_file("current_now")
+        return self.read_number_file("current_now") / 1000000
     
     def voltage(self) -> int:
-        return self.read_number_file("voltage_now")
+        return self.read_number_file("voltage_now") / 1000000
 
     def online(self) -> bool:
         return self.read_number_file("online") == 1
