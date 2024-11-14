@@ -1,0 +1,44 @@
+ports:
+ # 1     4
+ # 2     5
+ # 3     6
+ - id: 1
+   pd: /sys/class/power_supply/ucsi-source-psy-USBC000:004
+   led_matrix:
+    id: left
+    pos: 0
+
+ - id: 2
+   pd: /sys/class/power_supply/ucsi-source-psy-USBC000:003
+   led_matrix:
+    id: left
+    pos: 1
+
+ - id: 3
+   led_matrix:
+    id: left
+    pos: 2
+
+ - id: 4
+   pd: /sys/class/power_supply/ucsi-source-psy-USBC000:001
+   led_matrix:
+    id: right
+    pos: 0
+
+ - id: 5
+   pd: /sys/class/power_supply/ucsi-source-psy-USBC000:002
+   led_matrix:
+    id: right
+    pos: 1
+
+ - id: 6
+   led_matrix:
+    id: right
+    pos: 2
+
+led_matrices:
+- id: right
+  serial: /dev/serial/by-path/pci-0000:c4:00.3-usb-0:3.3:1.0
+
+- id: left
+  serial: /dev/serial/by-path/pci-0000:c4:00.3-usb-0:4.2:1.0
