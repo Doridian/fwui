@@ -1,5 +1,4 @@
 from serial import Serial
-from time import sleep
 
 LED_MATRIX_COLS = 9
 LED_MATRIX_ROWS = 34
