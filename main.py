@@ -46,7 +46,7 @@ class PortConfig:
     def render(self) -> list[int]:
         if not self.charge:
             return None
-        
+
         invert = self.matrix.id == "right"
 
         voltage = self.charge.voltage()
