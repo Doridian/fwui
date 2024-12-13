@@ -169,9 +169,13 @@ def main():
         if "pd" in ele:
             charge_port = ChargePort(ele["pd"])
 
+        display_port = None
+        if "display" in ele:
+            display_port = "TODO: Make a class"
+
         usb_port = None
         if "usb2" in ele or "usb3" in ele:
-            usb_port = USBPort(ele["usb2"], ele["usb3"], ele.get("can_display", False))
+            usb_port = USBPort(ele["usb2"], ele["usb3"], bool(display_port))
 
         if "led_matrix" in ele:
             ui_ports.append(PortConfig(
