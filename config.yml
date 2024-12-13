@@ -4,8 +4,9 @@ ports:
  # 3     6
  - id: 1
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:004
-   usb2: /sys/bus/usb/devices/5-1
-   usb3: /sys/bus/usb/devices/8-1
+   usb2: /sys/bus/usb/devices/7-1
+   usb3: /sys/bus/usb/devices/6-1
+   can_display: true
    led_matrix:
     id: left
     pos: 0
@@ -14,6 +15,7 @@ ports:
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:003
    usb2: /sys/bus/usb/devices/1-1
    usb3: /sys/bus/usb/devices/2-1
+   can_display: true
    led_matrix:
     id: left
     pos: 1
@@ -27,8 +29,9 @@ ports:
 
  - id: 4
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:001
-   usb2: /sys/bus/usb/devices/7-1
-   usb3: /sys/bus/usb/devices/6-1
+   usb2: /sys/bus/usb/devices/5-1
+   usb3: /sys/bus/usb/devices/8-1
+   can_display: true
    led_matrix:
     id: right
     pos: 0

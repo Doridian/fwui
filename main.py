@@ -3,6 +3,7 @@
 from yaml import safe_load as yaml_load
 from ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 from chargeport import ChargePort
+from usb import USBPort, USBPortType
 from dataclasses import dataclass
 from time import sleep
 
@@ -39,11 +40,45 @@ def _make_multirow_bar(width: float, height: int = 1, reverse: bool = False) -> 
 @dataclass(frozen=True)
 class PortConfig:
     charge: ChargePort | None
+    usb: USBPort | None
     matrix: LEDMatrix
     row: int
 
     # Rows are 9 bytes long
+
     def render(self) -> list[int]:
+        res = self.render_charge()
+        if res:
+            return res
+        
+        res = self.render_usb()
+        if res:
+            return res
+        
+        return None
+
+    def render_usb(self) -> list[int]:
+        if not self.usb:
+            return None
+        
+        port_type = self.usb.get_port_type()
+        print(self.row, self.usb.usb2, port_type)
+        if not port_type:
+            return None
+        
+        invert = self.matrix.id == "right"
+        if port_type == USBPortType.USB2:
+            return _make_row_bar(2, 4, invert)
+        elif port_type == USBPortType.USB3:
+            return _make_row_bar(6, 4, invert)
+        elif port_type == USBPortType.HDMI:
+            return _make_row_bar(2, 6, invert)
+        elif port_type == USBPortType.DP:
+            return _make_row_bar(6, 6, invert)
+
+        return None
+
+    def render_charge(self) -> list[int]:
         if not self.charge:
             return None
 
@@ -108,7 +143,6 @@ PER_POS_OFFSET = LED_MATRIX_ROWS // 3
 
 def main():
     LED_MATRICES: dict[str, LEDMatrix] = {}
-    CHARGE_PORTS: dict[str, ChargePort] = {}
 
     with open("config.yml", "r") as f:
         CONFIG = yaml_load(f)
@@ -128,11 +162,15 @@ def main():
         charge_port = None
         if "pd" in ele:
             charge_port = ChargePort(ele["pd"])
-            CHARGE_PORTS[ele["id"]] = charge_port
+
+        usb_port = None
+        if "usb2" in ele or "usb3" in ele:
+            usb_port = USBPort(ele["usb2"], ele["usb3"])
 
         if "led_matrix" in ele:
             ui_ports.append(PortConfig(
                 charge=charge_port,
+                usb=usb_port,
                 matrix=LED_MATRICES[ele["led_matrix"]["id"]],
                 row=((ele["led_matrix"]["pos"] * PER_POS_OFFSET) + 2),
             ))
