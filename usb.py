@@ -7,6 +7,10 @@ class USBPortType(Enum):
     USB3 = 1
     HDMI = 2
     DP = 3
+    ETHERNET = 4
+    MICROSD = 5
+    SD = 6
+    AUDIO = 7
 
 class USBPort:
     usb2: str
@@ -51,5 +55,15 @@ class USBPort:
                 return USBPortType.HDMI
             elif product_id == "0003":
                 return USBPortType.DP
-            
+            elif product_id == "0009":
+                return USBPortType.SD
+            elif product_id == "0010":
+                return USBPortType.AUDIO
+        elif vendor_id == "0bda":
+            if product_id == "8156":
+                return USBPortType.ETHERNET
+        elif vendor_id == "090c":
+            if product_id == "1000":
+                return USBPortType.MICROSD
+
         return USBPortType.USB3 if is_usb3 else USBPortType.USB2

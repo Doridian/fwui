@@ -47,11 +47,11 @@ class PortConfig:
     # Rows are 9 bytes long
 
     def render(self) -> list[int]:
-        res = self.render_charge()
+        res = self.render_usb()
         if res:
             return res
-        
-        res = self.render_usb()
+
+        res = self.render_charge()
         if res:
             return res
         
@@ -71,16 +71,7 @@ class PortConfig:
         if not is_valid_config:
             invert = not invert
 
-        if port_type == USBPortType.USB2:
-            return _make_row_bar(2, 4, invert)
-        elif port_type == USBPortType.USB3:
-            return _make_row_bar(6, 4, invert)
-        elif port_type == USBPortType.HDMI:
-            return _make_row_bar(2, 6, invert)
-        elif port_type == USBPortType.DP:
-            return _make_row_bar(6, 6, invert)
-
-        return None
+        return _make_row_bar(port_type.value + 1, 4, invert)
 
     def render_charge(self) -> list[int]:
         if not self.charge:
@@ -185,6 +176,7 @@ def main():
 
     while True:
         ui.render()
+        print("Render OK")
         sleep(1)
 
 if __name__ == "__main__":
