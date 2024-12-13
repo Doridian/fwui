@@ -11,10 +11,12 @@ class USBPortType(Enum):
 class USBPort:
     usb2: str
     usb3: str
+    can_display: bool
 
-    def __init__(self, usb2: str, usb3: str):
+    def __init__(self, usb2: str, usb3: str, can_display: bool):
         self.usb2 = usb2
         self.usb3 = usb3
+        self.can_display = can_display
 
     def read_subfile(self, file: str, usb3: bool) -> str:
         devbase = self.usb3 if usb3 else self.usb2
@@ -25,6 +27,11 @@ class USBPort:
                 return f.read().strip()
         except FileNotFoundError:
             return ""
+
+    def is_valid_port_type(self, port_type: USBPortType) -> bool:
+        if port_type == USBPortType.HDMI or port_type == USBPortType.DP:
+            return self.can_display
+        return True
 
     def get_port_type(self) -> Optional[USBPortType]:
         is_usb3 = True

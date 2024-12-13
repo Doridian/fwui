@@ -62,11 +62,15 @@ class PortConfig:
             return None
         
         port_type = self.usb.get_port_type()
-        print(self.row, self.usb.usb2, port_type)
         if not port_type:
             return None
         
+        is_valid_config = self.usb.is_valid_port_type(port_type)
+
         invert = self.matrix.id == "right"
+        if not is_valid_config:
+            invert = not invert
+
         if port_type == USBPortType.USB2:
             return _make_row_bar(2, 4, invert)
         elif port_type == USBPortType.USB3:
@@ -165,7 +169,7 @@ def main():
 
         usb_port = None
         if "usb2" in ele or "usb3" in ele:
-            usb_port = USBPort(ele["usb2"], ele["usb3"])
+            usb_port = USBPort(ele["usb2"], ele["usb3"], ele.get("can_display", False))
 
         if "led_matrix" in ele:
             ui_ports.append(PortConfig(
