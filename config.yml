@@ -15,6 +15,7 @@ ports:
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:003
    usb2: /sys/bus/usb/devices/1-1
    usb3: /sys/bus/usb/devices/2-1
+   display: /sys/class/drm/card2-DP-5
    can_display: true
    led_matrix:
     id: left

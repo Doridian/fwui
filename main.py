@@ -7,6 +7,7 @@ from usb import USBPort
 from dataclasses import dataclass
 from time import sleep
 from icons import USB_MODULE_ICONS, USB_DEVICE_ICONS
+from math import floor
 
 BLANK_ROW = [0x00] * LED_MATRIX_COLS
 FULL_ROW = [0xFF] * LED_MATRIX_COLS
@@ -95,7 +96,13 @@ class PortConfig:
         current = abs(current)
         voltage = abs(voltage)
 
-        return _make_row_bar(current, 2, invert) + (BLANK_ROW * 2) + _make_multirow_bar(voltage, 1, invert)
+        voltage_tens = floor(voltage / 10)
+        voltage = voltage - (voltage_tens * 10)
+
+        current_int = floor(current)
+        current_frac = current - current_int
+
+        return _make_row_bar(current_int, 2, invert) + _make_row_bar(current_frac * 10.0, 1, invert) + (BLANK_ROW * 2) + _make_row_bar(voltage_tens, 2, invert) + _make_row_bar(voltage, 1, invert)
 
 class PortUI:
     ports: list[PortConfig]
