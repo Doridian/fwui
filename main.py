@@ -3,9 +3,10 @@
 from yaml import safe_load as yaml_load
 from ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 from chargeport import ChargePort
-from usb import USBPort, USBPortType
+from usb import USBPort
 from dataclasses import dataclass
 from time import sleep
+from icons import USB_MODULE_ICONS, USB_DEVICE_ICONS
 
 BLANK_ROW = [0x00] * LED_MATRIX_COLS
 FULL_ROW = [0xFF] * LED_MATRIX_COLS
@@ -61,17 +62,20 @@ class PortConfig:
         if not self.usb:
             return None
         
-        port_type = self.usb.get_port_type()
-        if not port_type:
+        port_info = self.usb.get_info()
+        if not port_info:
             return None
         
-        is_valid_config = self.usb.is_valid_port_type(port_type)
+        is_valid_config = self.usb.is_valid_module(port_info.module)
 
         invert = self.matrix.id == "right"
         if not is_valid_config:
             invert = not invert
 
-        return _make_row_bar(port_type.value + 1, 4, invert)
+        if port_info in USB_DEVICE_ICONS:
+            return USB_DEVICE_ICONS[port_info]
+
+        return USB_MODULE_ICONS[port_info.module]
 
     def render_charge(self) -> list[int]:
         if not self.charge:
