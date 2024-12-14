@@ -74,8 +74,8 @@ class PortConfig:
 
         port_info = self.usb.get_info() if self.usb else None
         port_module = port_info.module if port_info else None
-        if port_module != USBPortModule.HDMI: # Only allow HDMI and DP
-            port_module = USBPortModule.DISPLAY_PORT
+        if port_module not in (USBPortModule.HDMI, USBPortModule.DISPLAY_PORT):
+            return None
 
         if not display_info or not display_info.connected:
             return DISPLAY_DISCONNECTED_ICONS[port_module]
