@@ -1,10 +1,9 @@
 from usb import USBPortInfo, USBPortModule
-from abc import ABC, abstractmethod
 from typing import Optional
 
 # All icons should be 9x8 pixels
 
-class USBDeviceOverride(ABC):
+class USBDeviceOverride:
     module: USBPortModule
 
     def __init__(self, module: USBPortModule):
@@ -13,9 +12,8 @@ class USBDeviceOverride(ABC):
     def is_connected(self) -> bool:
         return True
 
-    @abstractmethod
     def get_icon(self) -> Optional[list[int]]:
-        pass
+        return None
     
 class SimpleUSBDeviceOverride(USBDeviceOverride):
     connected_icon: list[int]
