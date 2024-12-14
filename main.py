@@ -4,10 +4,10 @@ from yaml import safe_load as yaml_load
 from ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 from chargeport import ChargePort
 from display import DisplayPort
-from usb import USBPort
+from usb import USBPort, USBPortModule
 from dataclasses import dataclass
 from time import sleep
-from icons import USB_CONNECTED_ICONS, USB_DISCONNECTED_ICONS
+from icons import USB_CONNECTED_ICONS, USB_DISCONNECTED_ICONS, DISPLAY_CONNECTED_ICONS, DISPLAY_DISCONNECTED_ICONS
 from usbdevs import USB_DEVICE_OVERRIDES
 from math import floor
 
@@ -71,12 +71,18 @@ class PortConfig:
             return None
         
         display_info = self.display.get_info()
+
+        port_info = self.usb.get_info() if self.usb else None
+        port_module = port_info.module if port_info else None
+        if port_module != USBPortModule.HDMI: # Only allow HDMI and DP
+            port_module = USBPortModule.DISPLAY_PORT
+
         if not display_info or not display_info.connected:
-            return self.render_usb(False)
+            return DISPLAY_DISCONNECTED_ICONS[port_module]
 
-        return self.render_usb(True)
+        return DISPLAY_CONNECTED_ICONS[port_module]
 
-    def render_usb(self, is_connected: bool = True) -> list[int]:
+    def render_usb(self) -> list[int]:
         if not self.usb:
             return None
         
@@ -85,17 +91,12 @@ class PortConfig:
             return None
         
         port_module = port_info.module
+        is_connected = True
 
         override = USB_DEVICE_OVERRIDES.get(port_info)
         if override:
             port_module = override.module
             is_connected = override.is_connected()
-
-        is_valid_config = self.usb.is_valid_module(port_module)
-
-        invert = self.matrix.id == "right"
-        if not is_valid_config:
-            invert = not invert
 
         if override:
             override_icon = override.get_icon()
@@ -204,7 +205,7 @@ def main():
 
         usb_port = None
         if "usb2" in ele or "usb3" in ele:
-            usb_port = USBPort(ele["usb2"], ele["usb3"], bool(display_port))
+            usb_port = USBPort(ele["usb2"], ele["usb3"])
 
         if "led_matrix" in ele:
             ui_ports.append(PortConfig(

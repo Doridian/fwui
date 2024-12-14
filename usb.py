@@ -23,12 +23,10 @@ class USBPortInfo:
 class USBPort:
     usb2: str
     usb3: str
-    can_display: bool
 
-    def __init__(self, usb2: str, usb3: str, can_display: bool):
+    def __init__(self, usb2: str, usb3: str):
         self.usb2 = usb2
         self.usb3 = usb3
-        self.can_display = can_display
 
     def read_subfile(self, file: str, usb3: bool) -> int:
         devbase = self.usb3 if usb3 else self.usb2
@@ -39,11 +37,6 @@ class USBPort:
                 return int(f.read().strip(), 16)
         except FileNotFoundError:
             return 0
-
-    def is_valid_module(self, module: USBPortModule) -> bool:
-        if module == USBPortModule.HDMI or module == USBPortModule.DISPLAY_PORT:
-            return self.can_display
-        return True
 
     def get_info(self) -> Optional[USBPortInfo]:
         is_usb3 = True
