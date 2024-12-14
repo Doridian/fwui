@@ -7,9 +7,10 @@ from display import DisplayPort
 from usb import USBPort, USBPortModule
 from dataclasses import dataclass
 from time import sleep
-from icons import USB_CONNECTED_ICONS, USB_DISCONNECTED_ICONS, DISPLAY_CONNECTED_ICONS, DISPLAY_DISCONNECTED_ICONS
+from icons import USB_ICONS, DISPLAY_CONNECTED_ICONS, DISPLAY_DISCONNECTED_ICONS, USB2_ICON, USB3_ICON
 from usbdevs import USB_DEVICE_OVERRIDES
 from math import floor
+from typing import Optional
 
 BLANK_ROW = [0x00] * LED_MATRIX_COLS
 FULL_ROW = [0xFF] * LED_MATRIX_COLS
@@ -51,7 +52,7 @@ class PortConfig:
 
     # Rows are 9 bytes long
 
-    def render(self) -> list[int]:
+    def render(self) -> Optional[list[int]]:
         res = self.render_display()
         if res:
             return res
@@ -66,23 +67,7 @@ class PortConfig:
         
         return None
 
-    def render_display(self) -> list[int]:
-        if not self.display:
-            return None
-        
-        display_info = self.display.get_info()
-
-        port_info = self.usb.get_info() if self.usb else None
-        port_module = port_info.module if port_info else None
-        if port_module not in (USBPortModule.HDMI, USBPortModule.DISPLAY_PORT):
-            return None
-
-        if not display_info or not display_info.connected:
-            return DISPLAY_DISCONNECTED_ICONS[port_module]
-
-        return DISPLAY_CONNECTED_ICONS[port_module]
-
-    def render_usb(self) -> list[int]:
+    def get_usb_module(self) -> USBPortModule:
         if not self.usb:
             return None
         
@@ -90,25 +75,56 @@ class PortConfig:
         if not port_info:
             return None
         
-        port_module = port_info.module
-        is_connected = True
+        port_module = USBPortModule.USB
 
         override = USB_DEVICE_OVERRIDES.get(port_info)
         if override:
             port_module = override.module
-            is_connected = override.is_connected()
+
+        return port_module
+
+    def render_display(self) -> Optional[list[int]]:
+        if not self.display:
+            return None
+        
+        display_info = self.display.get_info()
+
+        port_module = self.get_usb_module()
+        if port_module != USBPortModule.HDMI and port_module != USBPortModule.DISPLAY_PORT:
+            return None
+
+        if not display_info or not display_info.connected:
+            return DISPLAY_DISCONNECTED_ICONS[port_module]
+
+        return DISPLAY_CONNECTED_ICONS[port_module]
+
+    def render_usb(self) -> Optional[list[int]]:
+        if not self.usb:
+            return None
+        
+        port_info = self.usb.get_info()
+        if not port_info:
+            return None
+        
+        port_module = USBPortModule.USB
+
+        override = USB_DEVICE_OVERRIDES.get(port_info)
+        if override:
+            port_module = override.module
 
         if override:
-            override_icon = override.get_icon()
+            override_icon = override.get_icon(port=self.usb, info=port_info)
             if override_icon:
                 return override_icon
+            
+        if port_module == USBPortModule.USB:
+            if port_info.is_usb3:
+                return USB3_ICON
+            return USB2_ICON
 
-        if not is_connected:
-            return USB_DISCONNECTED_ICONS[port_module]
+        return USB_ICONS[port_module]
 
-        return USB_CONNECTED_ICONS[port_module]
-
-    def render_charge(self) -> list[int]:
+    def render_charge(self) -> Optional[list[int]]:
         if not self.charge:
             return None
 

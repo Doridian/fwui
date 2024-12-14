@@ -1,8 +1,8 @@
 # All icons should be 9x8 pixels
 from usb import USBPortModule
 
-USB_CONNECTED_ICONS: dict[USBPortModule, list[int]] = {}
-USB_DISCONNECTED_ICONS: dict[USBPortModule, list[int]] = {}
+USB_ICONS: dict[USBPortModule, list[int]] = {}
+
 DISPLAY_CONNECTED_ICONS: dict[USBPortModule, list[int]] = {}
 DISPLAY_DISCONNECTED_ICONS: dict[USBPortModule, list[int]] = {}
 
@@ -92,9 +92,7 @@ DISPLAY_DISCONNECTED_ICONS[USBPortModule.DISPLAY_PORT] = parse_str_info(
     "  #####  "
 )
 
-
-
-USB_CONNECTED_ICONS[USBPortModule.USB2] = parse_str_info(
+USB2_ICON = parse_str_info(
     "   ###   " +
     "  #   #  " +
     "      #  " +
@@ -105,7 +103,7 @@ USB_CONNECTED_ICONS[USBPortModule.USB2] = parse_str_info(
     "  #####  "
 )
 
-USB_CONNECTED_ICONS[USBPortModule.USB3] = parse_str_info(
+USB3_ICON = parse_str_info(
     "   ###   " +
     "  #   #  " +
     "      #  " +
@@ -116,7 +114,7 @@ USB_CONNECTED_ICONS[USBPortModule.USB3] = parse_str_info(
     "   ###   "
 )
 
-USB_CONNECTED_ICONS[USBPortModule.USB4] = parse_str_info(
+USB_ICONS[USBPortModule.USB4] = parse_str_info(
     "     #   " +
     "    ##   " +
     "   # #   " +
@@ -125,61 +123,6 @@ USB_CONNECTED_ICONS[USBPortModule.USB4] = parse_str_info(
     "  #####  " +
     "     #   " +
     "     #   "
-)
-
-USB_CONNECTED_ICONS[USBPortModule.ETHERNET] = parse_str_info(
-    " ####### " +
-    " # # # # " +
-    " # # # # " +
-    " #     # " +
-    " #     # " +
-    " #     # " +
-    " ##   ## " +
-    "  #####  "
-)
-
-USB_CONNECTED_ICONS[USBPortModule.SD] = parse_str_info(
-    " #####   " +
-    " #    #  " +
-    " ##    # " +
-    "  #    # " +
-    " #     # " +
-    " #     # " +
-    " #     # " +
-    " ####### "
-)
-
-USB_CONNECTED_ICONS[USBPortModule.MICRO_SD] = parse_str_info(
-    "  ####   " +
-    "  #   #  " +
-    "  #   #  " +
-    "  #    # " +
-    "  #   #  " +
-    "  #    # " +
-    "  #    # " +
-    "  ###### "
-)
-
-USB_CONNECTED_ICONS[USBPortModule.AUDIO] = parse_str_info(
-    "      #  " +
-    "     ##  " +
-    "  ### #  " +
-    "  #   #  " +
-    "  #   #  " +
-    "  ### #  " +
-    "     ##  " +
-    "      #  "
-)
-
-USB_DISCONNECTED_ICONS[USBPortModule.ETHERNET] = parse_str_info(
-    " ####### " +
-    " # 3 3 # " +
-    " # 3 3 # " +
-    " #     # " +
-    " #     # " +
-    " #     # " +
-    " ##   ## " +
-    "  #####  "
 )
 
 _CROSS = parse_str_info(
@@ -200,12 +143,7 @@ def _make_usb_invalid_display_icon(port_module: USBPortModule) -> list[int]:
             icon[i] = x
         else:
             icon[i] //= 4
-    USB_CONNECTED_ICONS[port_module] = icon
+    USB_ICONS[port_module] = icon
 
 _make_usb_invalid_display_icon(USBPortModule.HDMI)
 _make_usb_invalid_display_icon(USBPortModule.DISPLAY_PORT)
-
-for module in USBPortModule:
-    if module in USB_DISCONNECTED_ICONS:
-        continue
-    USB_DISCONNECTED_ICONS[module] = USB_CONNECTED_ICONS[module].copy()
