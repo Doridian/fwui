@@ -3,10 +3,12 @@
 from yaml import safe_load as yaml_load
 from ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 from chargeport import ChargePort
+from display import DisplayPort
 from usb import USBPort
 from dataclasses import dataclass
 from time import sleep
-from icons import USB_MODULE_ICONS, USB_DEVICE_ICONS
+from icons import USB_CONNECTED_ICONS, USB_DISCONNECTED_ICONS
+from usbdevs import USB_DEVICE_OVERRIDES
 from math import floor
 
 BLANK_ROW = [0x00] * LED_MATRIX_COLS
@@ -43,12 +45,17 @@ def _make_multirow_bar(width: float, height: int = 1, reverse: bool = False) -> 
 class PortConfig:
     charge: ChargePort | None
     usb: USBPort | None
+    display: DisplayPort | None
     matrix: LEDMatrix
     row: int
 
     # Rows are 9 bytes long
 
     def render(self) -> list[int]:
+        res = self.render_display()
+        if res:
+            return res
+
         res = self.render_usb()
         if res:
             return res
@@ -59,7 +66,17 @@ class PortConfig:
         
         return None
 
-    def render_usb(self) -> list[int]:
+    def render_display(self) -> list[int]:
+        if not self.display:
+            return None
+        
+        display_info = self.display.get_info()
+        if not display_info or not display_info.connected:
+            return self.render_usb(False)
+
+        return self.render_usb(True)
+
+    def render_usb(self, is_connected: bool = True) -> list[int]:
         if not self.usb:
             return None
         
@@ -67,16 +84,28 @@ class PortConfig:
         if not port_info:
             return None
         
-        is_valid_config = self.usb.is_valid_module(port_info.module)
+        port_module = port_info.module
+
+        override = USB_DEVICE_OVERRIDES.get(port_info)
+        if override:
+            port_module = override.module
+            is_connected = override.is_connected()
+
+        is_valid_config = self.usb.is_valid_module(port_module)
 
         invert = self.matrix.id == "right"
         if not is_valid_config:
             invert = not invert
 
-        if port_info in USB_DEVICE_ICONS:
-            return USB_DEVICE_ICONS[port_info]
+        if override:
+            override_icon = override.get_icon()
+            if override_icon:
+                return override_icon
 
-        return USB_MODULE_ICONS[port_info.module]
+        if not is_connected:
+            return USB_DISCONNECTED_ICONS[port_module]
+
+        return USB_CONNECTED_ICONS[port_module]
 
     def render_charge(self) -> list[int]:
         if not self.charge:
@@ -171,7 +200,7 @@ def main():
 
         display_port = None
         if "display" in ele:
-            display_port = "TODO: Make a class"
+            display_port = DisplayPort(ele["display"])
 
         usb_port = None
         if "usb2" in ele or "usb3" in ele:
@@ -181,6 +210,7 @@ def main():
             ui_ports.append(PortConfig(
                 charge=charge_port,
                 usb=usb_port,
+                display=display_port,
                 matrix=LED_MATRICES[ele["led_matrix"]["id"]],
                 row=((ele["led_matrix"]["pos"] * PER_POS_OFFSET) + 2),
             ))

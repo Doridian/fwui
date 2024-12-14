@@ -6,6 +6,7 @@ ports:
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:004
    usb2: /sys/bus/usb/devices/7-1
    usb3: /sys/bus/usb/devices/8-1
+   # usb4: TODO
    display: /sys/class/drm/card2-DP-4
    led_matrix:
     id: left
@@ -31,6 +32,7 @@ ports:
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:001
    usb2: /sys/bus/usb/devices/5-1
    usb3: /sys/bus/usb/devices/6-1
+   # usb4: TODO
    display: /sys/class/drm/card2-DP-3
    led_matrix:
     id: right

@@ -1,23 +1,24 @@
 from os import path
 from enum import Enum
 from typing import Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 class USBPortModule(Enum):
-    USB2 = 0
-    USB3 = 1
-    HDMI = 2
-    DISPLAY_PORT = 3
-    ETHERNET = 4
-    MICRO_SD = 5
-    SD = 6
-    AUDIO = 7
+    USB2 = 1
+    USB3 = 2
+    USB4 = 3
+    HDMI = 4
+    DISPLAY_PORT = 5
+    ETHERNET = 6
+    MICRO_SD = 7
+    SD = 8
+    AUDIO = 9
 
 @dataclass(kw_only=True, frozen=True, eq=True)
 class USBPortInfo:
     vid: int
     pid: int
-    module: USBPortModule
+    module: USBPortModule = field(compare=False)
 
 class USBPort:
     usb2: str
@@ -29,15 +30,15 @@ class USBPort:
         self.usb3 = usb3
         self.can_display = can_display
 
-    def read_subfile(self, file: str, usb3: bool) -> str:
+    def read_subfile(self, file: str, usb3: bool) -> int:
         devbase = self.usb3 if usb3 else self.usb2
         if not devbase:
-            return ""
+            return 0
         try:
             with open(path.join(devbase, file), "r") as f:
                 return int(f.read().strip(), 16)
         except FileNotFoundError:
-            return ""
+            return 0
 
     def is_valid_module(self, module: USBPortModule) -> bool:
         if module == USBPortModule.HDMI or module == USBPortModule.DISPLAY_PORT:
