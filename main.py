@@ -53,7 +53,7 @@ class PortConfig:
             if res:
                 return res
 
-        res = self.render_charge()
+        res = self.render_charge(input_only=True)
         if res:
             return res
 
@@ -61,7 +61,7 @@ class PortConfig:
             return RenderResult(data=USB3_ICON)
         return RenderResult(data=USB2_ICON)
 
-    def render_charge(self) -> Optional[RenderResult]:
+    def render_charge(self, input_only: bool = False) -> Optional[RenderResult]:
         if not self.charge:
             return None
 
@@ -74,6 +74,8 @@ class PortConfig:
         current = self.charge.current()
         online = self.charge.online()
         if current < 0 or voltage < 0 or not online:
+            if input_only:
+                return None
             invert = not invert
 
         current = abs(current)
