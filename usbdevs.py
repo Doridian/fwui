@@ -54,8 +54,6 @@ class USBDisplayDevice(USBConnectionDevice):
 
 USB_DEVICES: dict[USBPortInfo, USBDevice] = {}
 
-# Define devices below
-
 class EthernetDevice(USBConnectionDevice):
     _ETHERNET_DISCONNECTED_ICON = parse_str_info(
         " ####### " +
@@ -166,6 +164,8 @@ _HDMI_DEVICE = USBDisplayDevice(
     ),
     invalid_icon=None,
 )
+
+# Define devices below
 
 USB_DEVICES[USBPortInfo(vid=0x32ac, pid=0x0010)] = _AUDIO_DEVICE
 USB_DEVICES[USBPortInfo(vid=0x0bda, pid=0x8156)] = _ETHERNET_DEVICE
