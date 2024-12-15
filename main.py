@@ -11,6 +11,7 @@ from icons import USB2_ICON, USB3_ICON
 from usbdevs import USB_DEVICES
 from math import floor
 from typing import Optional
+from render import RenderInfo, RenderResult
 
 BLANK_ROW = [0x00] * LED_MATRIX_COLS
 FULL_ROW = [0xFF] * LED_MATRIX_COLS
@@ -52,7 +53,7 @@ class PortConfig:
 
     # Rows are 9 bytes long
 
-    def render(self) -> Optional[list[int]]:
+    def render(self) -> RenderResult:
         res = self.render_usb()
         if res:
             return res
@@ -61,9 +62,9 @@ class PortConfig:
         if res:
             return res
         
-        return None
+        return RenderResult(data=None, allow_sleep=True)
 
-    def render_usb(self) -> Optional[list[int]]:
+    def render_usb(self) -> Optional[RenderResult]:
         if not self.usb:
             return None
         
@@ -73,15 +74,22 @@ class PortConfig:
 
         usbdev = USB_DEVICES.get(port_info)
         if usbdev:
-            usbdev_icon = usbdev.get_icon(port=self.usb, info=port_info, display=self.display)
-            if usbdev_icon:
-                return usbdev_icon
+            res = usbdev.render(
+                RenderInfo(
+                    usb=self.usb,
+                    usbinfo=port_info,
+                    display=self.display,
+                    matrix=self.matrix,
+                )
+            )
+            if res:
+                return res
 
         if port_info.is_usb3:
-            return USB3_ICON
-        return USB2_ICON
+            return RenderResult(data=USB3_ICON)
+        return RenderResult(data=USB2_ICON)
 
-    def render_charge(self) -> Optional[list[int]]:
+    def render_charge(self) -> Optional[RenderResult]:
         if not self.charge:
             return None
 
@@ -105,7 +113,8 @@ class PortConfig:
         current_int = floor(current)
         current_frac = current - current_int
 
-        return _make_row_bar(current_int, 2, invert) + _make_row_bar(current_frac * 10.0, 1, invert) + (BLANK_ROW * 2) + _make_row_bar(voltage_tens, 2, invert) + _make_row_bar(voltage, 1, invert)
+        data = _make_row_bar(current_int, 2, invert) + _make_row_bar(current_frac * 10.0, 1, invert) + (BLANK_ROW * 2) + _make_row_bar(voltage_tens, 2, invert) + _make_row_bar(voltage, 1, invert)
+        return RenderResult(data=data)
 
 class PortUI:
     ports: list[PortConfig]
@@ -116,7 +125,7 @@ class PortUI:
         all_images: dict[LEDMatrix, bytearray | None] = {}
         for port in self.ports:
             res = port.render()
-            if not res:
+            if not res.data:
                 if port.matrix not in all_images:
                     all_images[port.matrix] = None
                 continue
@@ -126,10 +135,11 @@ class PortUI:
                 image_data = ([0x00] * LED_MATRIX_ROWS) * LED_MATRIX_COLS
                 all_images[port.matrix] = image_data
     
-            lines = len(res) // LED_MATRIX_COLS
+            data = res.data
+            lines = len(data) // LED_MATRIX_COLS
             for col in range(LED_MATRIX_COLS):
                 start = (col * LED_MATRIX_ROWS) + port.row
-                image_data[start:start+lines] = res[col::9]
+                image_data[start:start+lines] = data[col::9]
 
         for matrix, image_data in all_images.items():
             if not image_data:

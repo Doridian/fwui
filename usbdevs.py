@@ -1,12 +1,12 @@
-from usb import USBPortInfo, USBPort
-from display import DisplayPort
+from usb import USBPortInfo
 from typing import Optional
 from icons import parse_str_info, make_invalid_icon
+from render import RenderInfo, RenderResult
 
 # All icons should be 9x8 pixels
 
 class USBDevice:
-    def get_icon(self, port: USBPort, info: USBPortInfo, display: DisplayPort) -> Optional[list[int]]:
+    def render(self, info: RenderInfo) -> Optional[RenderResult]:
         return None
 
 class USBDevice(USBDevice):
@@ -19,13 +19,13 @@ class USBDevice(USBDevice):
             disconnected_icon = connected_icon.copy()
         self.disconnected_icon = disconnected_icon
 
-    def is_connected(self, port: USBPort, info: USBPortInfo, display: DisplayPort) -> bool:
+    def is_connected(self, info: RenderInfo) -> bool:
         raise NotImplementedError()
 
-    def get_icon(self, port: USBPort, info: USBPortInfo, display: DisplayPort) -> Optional[list[int]]:
-        if self.is_connected(port, info, display):
-            return self.connected_icon
-        return self.disconnected_icon
+    def render(self, info: RenderInfo) -> Optional[RenderResult]:
+        if self.is_connected(info):
+            return RenderResult(data=self.connected_icon)
+        return RenderResult(data=self.disconnected_icon)
 
 class USBDisplayDevice(USBDevice):
     invalid_icon: list[int]
@@ -36,14 +36,14 @@ class USBDisplayDevice(USBDevice):
             invalid_icon = make_invalid_icon(connected_icon)
         self.invalid_icon = invalid_icon
 
-    def is_connected(self, port: USBPort, info: USBPortInfo, display: DisplayPort) -> bool:
-        display_info = display.get_info()
+    def is_connected(self, info: RenderInfo) -> bool:
+        display_info = info.display.get_info()
         return display_info and display_info.connected
 
-    def get_icon(self, port: USBPort, info: USBPortInfo, display: DisplayPort) -> Optional[list[int]]:
-        if not display:
-            return self.invalid_icon
-        return super().get_icon(port, info, display)
+    def render(self, info: RenderInfo) -> Optional[RenderResult]:
+        if not info.display:
+            return RenderResult(data=self.invalid_icon, allow_sleep=False)
+        return super().render(info)
 
 USB_DEVICES: dict[USBPortInfo, USBDevice] = {}
 
@@ -74,8 +74,8 @@ class EthernetDevice(USBDevice):
     def __init__(self):
         super().__init__(self._ETHERNET_CONNECTED_ICON, self._ETHERNET_DISCONNECTED_ICON)
 
-    def is_connected(self, port: USBPort, info: USBPortInfo, display: DisplayPort) -> bool:
-        return port.read_subfile("*/net/*/operstate", info.is_usb3) == "up"
+    def is_connected(self, info: RenderInfo) -> bool:
+        return info.usb.read_subfile("*/net/*/operstate", info.usbinfo.is_usb3) == "up"
 
 _ETHERNET_DEVICE = EthernetDevice()
 
