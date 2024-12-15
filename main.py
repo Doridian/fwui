@@ -53,6 +53,10 @@ class PortConfig:
             if res:
                 return res
 
+        res = self.render_charge()
+        if res:
+            return res
+
         if port_info.is_usb3:
             return RenderResult(data=USB3_ICON)
         return RenderResult(data=USB2_ICON)
