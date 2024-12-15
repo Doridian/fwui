@@ -22,7 +22,7 @@ class PortConfig:
         if res:
             return res
 
-        res = render_charge(info=self.render_info, input_only=True)
+        res = render_charge(info=self.render_info)
         if res:
             return res
         
