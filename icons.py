@@ -1,10 +1,4 @@
 # All icons should be 9x8 pixels
-from usb import USBPortModule
-
-USB_ICONS: dict[USBPortModule, list[int]] = {}
-
-DISPLAY_CONNECTED_ICONS: dict[USBPortModule, list[int]] = {}
-DISPLAY_DISCONNECTED_ICONS: dict[USBPortModule, list[int]] = {}
 
 def parse_str_info(src: str) -> list[int]:
     res = []
@@ -46,52 +40,6 @@ def parse_str_info(src: str) -> list[int]:
     print(len(res))
     return res
 
-
-
-DISPLAY_CONNECTED_ICONS[USBPortModule.HDMI] = parse_str_info(
-    "   ####  " +
-    "  #   #  " +
-    "  # # #  " +
-    "  # # #  " +
-    "  # # #  " +
-    "  # # #  " +
-    "  #   #  " +
-    "   ####  "
-)
-
-DISPLAY_CONNECTED_ICONS[USBPortModule.DISPLAY_PORT] = parse_str_info(
-    "   ####  " +
-    "  #   #  " +
-    "  ### #  " +
-    "  # # #  " +
-    "  # # #  " +
-    "  ### #  " +
-    "  #   #  " +
-    "  #####  "
-)
-
-DISPLAY_DISCONNECTED_ICONS[USBPortModule.HDMI] = parse_str_info(
-    "   ####  " +
-    "  #   #  " +
-    "  # 3 #  " +
-    "  # 3 #  " +
-    "  # 3 #  " +
-    "  # 3 #  " +
-    "  #   #  " +
-    "   ####  "
-)
-
-DISPLAY_DISCONNECTED_ICONS[USBPortModule.DISPLAY_PORT] = parse_str_info(
-    "   ####  " +
-    "  #   #  " +
-    "  #33 #  " +
-    "  # 3 #  " +
-    "  # 3 #  " +
-    "  #33 #  " +
-    "  #   #  " +
-    "  #####  "
-)
-
 USB2_ICON = parse_str_info(
     "   ###   " +
     "  #   #  " +
@@ -114,7 +62,7 @@ USB3_ICON = parse_str_info(
     "   ###   "
 )
 
-USB_ICONS[USBPortModule.USB4] = parse_str_info(
+USB4_ICON = parse_str_info(
     "     #   " +
     "    ##   " +
     "   # #   " +
@@ -136,14 +84,11 @@ _CROSS = parse_str_info(
     " #     # "
 )
 
-def _make_usb_invalid_display_icon(port_module: USBPortModule) -> list[int]:
-    icon = DISPLAY_DISCONNECTED_ICONS[port_module].copy()
+def make_invalid_icon(src: str) -> list[int]:
+    icon = src.copy()
     for i, x in enumerate(_CROSS):
         if x:
             icon[i] = x
         else:
             icon[i] //= 4
-    USB_ICONS[port_module] = icon
-
-_make_usb_invalid_display_icon(USBPortModule.HDMI)
-_make_usb_invalid_display_icon(USBPortModule.DISPLAY_PORT)
+    return icon

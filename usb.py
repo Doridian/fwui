@@ -1,14 +1,7 @@
 from os import path
-from enum import Enum
 from typing import Optional
 from dataclasses import dataclass, field
 from glob import glob
-
-class USBPortModule(Enum):
-    USB = 1
-    USB4 = 2
-    HDMI = 3
-    DISPLAY_PORT = 4
 
 @dataclass(kw_only=True, frozen=True, eq=True)
 class USBPortInfo:
