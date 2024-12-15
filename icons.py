@@ -1,4 +1,9 @@
+from ledmatrix import LED_MATRIX_COLS, LED_MATRIX_ROWS
+
 # All icons should be 9x8 pixels
+
+ICON_COLS = LED_MATRIX_COLS
+ICON_ROWS = 8
 
 def parse_str_info(src: str) -> list[int]:
     res = []
@@ -37,7 +42,10 @@ def parse_str_info(src: str) -> list[int]:
             res.append(0xEE)
         elif c == "F":
             res.append(0xFF)
-    print(len(res))
+
+    if len(res) != ICON_COLS * ICON_ROWS:
+        raise ValueError(f"Invalid icon size expected={ICON_COLS * ICON_ROWS} actual={len(res)}")
+
     return res
 
 USB2_ICON = parse_str_info(
