@@ -1,9 +1,25 @@
-from usb import USBPortInfo
 from typing import Optional
 from icons import parse_str_info, make_invalid_icon
 from render import RenderInfo, RenderResult
+from abc import ABC, abstractmethod
 
 # All icons should be 9x8 pixels
+
+class USBDeviceMatcher(ABC):
+    @abstractmethod
+    def matches(self, info: RenderInfo) -> bool:
+        pass
+
+class USBDeviceIDMatcher(USBDeviceMatcher):
+    vid: int
+    pid: int
+
+    def __init__(self, vid: int, pid: int):
+        self.vid = vid
+        self.pid = pid
+
+    def matches(self, info: RenderInfo) -> bool:
+        return info.usbinfo.vid == self.vid and info.usbinfo.pid == self.pid
 
 class USBDevice:
     def render(self, info: RenderInfo) -> Optional[RenderResult]:
@@ -52,37 +68,32 @@ class USBDisplayDevice(USBConnectionDevice):
             return RenderResult(data=self.invalid_icon, allow_sleep=False)
         return super().render(info)
 
-USB_DEVICES: dict[USBPortInfo, USBDevice] = {}
-
 class EthernetDevice(USBConnectionDevice):
-    _ETHERNET_DISCONNECTED_ICON = parse_str_info(
-        " ####### " +
-        " # 3 3 # " +
-        " # 3 3 # " +
-        " #     # " +
-        " #     # " +
-        " #     # " +
-        " ##   ## " +
-        "  #####  "
-    )
-    _ETHERNET_CONNECTED_ICON = parse_str_info(
-        " ####### " +
-        " # # # # " +
-        " # # # # " +
-        " #     # " +
-        " #     # " +
-        " #     # " +
-        " ##   ## " +
-        "  #####  "
-    )
-
-    def __init__(self):
-        super().__init__(self._ETHERNET_CONNECTED_ICON, self._ETHERNET_DISCONNECTED_ICON)
-
     def is_connected(self, info: RenderInfo) -> bool:
         return info.usb.read_subfile("*/net/*/operstate", info.usbinfo.is_usb3) == "up"
 
-_ETHERNET_DEVICE = EthernetDevice()
+_ETHERNET_DEVICE = EthernetDevice(
+    connected_icon=parse_str_info(
+        " ####### " +
+        " # # # # " +
+        " # # # # " +
+        " #     # " +
+        " #     # " +
+        " #     # " +
+        " ##   ## " +
+        "  #####  "
+    ),
+    disconnected_icon=parse_str_info(
+        " ####### " +
+        " # 3 3 # " +
+        " # 3 3 # " +
+        " #     # " +
+        " #     # " +
+        " #     # " +
+        " ##   ## " +
+        "  #####  "
+    ),
+)
 
 _AUDIO_DEVICE = USBBasicDevice(parse_str_info(
      "      #  " +
@@ -165,12 +176,17 @@ _HDMI_DEVICE = USBDisplayDevice(
     invalid_icon=None,
 )
 
+USB_MATCHERS: list[tuple[USBDeviceMatcher, USBDevice]] = []
+
+def add_matcher(matcher: USBDeviceMatcher, device: USBDevice):
+    USB_MATCHERS.append((matcher, device))
+
 # Define devices below
 
-USB_DEVICES[USBPortInfo(vid=0x32ac, pid=0x0010)] = _AUDIO_DEVICE
-USB_DEVICES[USBPortInfo(vid=0x0bda, pid=0x8156)] = _ETHERNET_DEVICE
-USB_DEVICES[USBPortInfo(vid=0x32ac, pid=0x0009)] = _SD_DEVICE
-USB_DEVICES[USBPortInfo(vid=0x090c, pid=0x1000)] = _MICROSD_DEVICE
+add_matcher(USBDeviceIDMatcher(vid=0x32ac, pid=0x0010), _AUDIO_DEVICE)
+add_matcher(USBDeviceIDMatcher(vid=0x0bda, pid=0x8156), _ETHERNET_DEVICE)
+add_matcher(USBDeviceIDMatcher(vid=0x32ac, pid=0x0009), _SD_DEVICE)
+add_matcher(USBDeviceIDMatcher(vid=0x090c, pid=0x1000), _MICROSD_DEVICE)
 
-USB_DEVICES[USBPortInfo(vid=0x32ac, pid=0x0002)] = _HDMI_DEVICE
-USB_DEVICES[USBPortInfo(vid=0x32ac, pid=0x0003)] = _DISPLAY_PORT_DEVICE
+add_matcher(USBDeviceIDMatcher(vid=0x32ac, pid=0x0002), _HDMI_DEVICE)
+add_matcher(USBDeviceIDMatcher(vid=0x32ac, pid=0x0003), _DISPLAY_PORT_DEVICE)

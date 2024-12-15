@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Optional
 from usb import USBPort, USBPortInfo
+from chargeport import ChargePort
 from display import DisplayPort
 from ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
+from math import floor
 
 BLANK_ROW = [0x00] * LED_MATRIX_COLS
 FULL_ROW = [0xFF] * LED_MATRIX_COLS
@@ -42,9 +44,49 @@ class RenderInfo:
     usb: USBPort
     usbinfo: USBPortInfo
     display: Optional[DisplayPort]
+    charge: Optional[ChargePort]
     matrix: LEDMatrix
+
+    def augment_usbinfo(self, usbinfo: USBPortInfo) -> "RenderInfo":
+        return RenderInfo(
+            usb=self.usb,
+            usbinfo=usbinfo,
+            display=self.display,
+            charge=self.charge,
+            matrix=self.matrix,
+        )
 
 @dataclass(kw_only=True, frozen=True)
 class RenderResult:
     data: list[int]
     allow_sleep: bool = field(default=True)
+
+
+def render_charge(info: RenderInfo, input_only: bool = False) -> Optional[RenderResult]:
+    if not info.charge:
+        return None
+
+    invert = info.matrix.id == "right"
+
+    voltage = info.charge.voltage()
+    if voltage == 0:
+        return None
+
+    current = info.charge.current()
+    online = info.charge.online()
+    if current < 0 or voltage < 0 or not online:
+        if input_only:
+            return None
+        invert = not invert
+
+    current = abs(current)
+    voltage = abs(voltage)
+
+    voltage_tens = floor(voltage / 10)
+    voltage = voltage - (voltage_tens * 10)
+
+    current_int = floor(current)
+    current_frac = current - current_int
+
+    data = make_row_bar(current_int, 2, invert) + make_row_bar(current_frac * 10.0, 1, invert) + (BLANK_ROW * 2) + make_row_bar(voltage_tens, 2, invert) + make_row_bar(voltage, 1, invert)
+    return RenderResult(data=data)

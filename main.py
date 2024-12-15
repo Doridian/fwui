@@ -8,17 +8,13 @@ from usb import USBPort
 from dataclasses import dataclass
 from time import sleep
 from icons import USB2_ICON, USB3_ICON
-from usbdevs import USB_DEVICES
-from math import floor
+from usbdevs import USB_MATCHERS
 from typing import Optional
-from render import RenderInfo, RenderResult, make_row_bar, BLANK_ROW, PER_POS_OFFSET, ICON_ROWS
+from render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge
 
 @dataclass(frozen=True)
 class PortConfig:
-    charge: ChargePort | None
-    usb: USBPort | None
-    display: DisplayPort | None
-    matrix: LEDMatrix
+    render_info: RenderInfo
     row: int
 
     def render(self) -> RenderResult:
@@ -26,69 +22,37 @@ class PortConfig:
         if res:
             return res
 
-        res = self.render_charge()
+        res = render_charge(info=self.render_info, input_only=True)
         if res:
             return res
         
         return RenderResult(data=None)
 
     def render_usb(self) -> Optional[RenderResult]:
-        if not self.usb:
+        if not self.render_info.usb:
             return None
         
-        port_info = self.usb.get_info()
+        port_info = self.render_info.usb.get_info()
         if not port_info:
             return None
 
-        usbdev = USB_DEVICES.get(port_info)
-        if usbdev:
-            res = usbdev.render(
-                RenderInfo(
-                    usb=self.usb,
-                    usbinfo=port_info,
-                    display=self.display,
-                    matrix=self.matrix,
-                )
-            )
+        render_info = self.render_info.augment_usbinfo(
+            usbinfo=port_info,
+        )
+        for matcher, usbdev in USB_MATCHERS:
+            if not matcher.matches(render_info):
+                continue
+            res = usbdev.render(render_info)
             if res:
                 return res
 
-        res = self.render_charge(input_only=True)
+        res = render_charge(info=render_info, input_only=True)
         if res:
             return res
 
         if port_info.is_usb3:
             return RenderResult(data=USB3_ICON)
         return RenderResult(data=USB2_ICON)
-
-    def render_charge(self, input_only: bool = False) -> Optional[RenderResult]:
-        if not self.charge:
-            return None
-
-        invert = self.matrix.id == "right"
-
-        voltage = self.charge.voltage()
-        if voltage == 0:
-            return None
-
-        current = self.charge.current()
-        online = self.charge.online()
-        if current < 0 or voltage < 0 or not online:
-            if input_only:
-                return None
-            invert = not invert
-
-        current = abs(current)
-        voltage = abs(voltage)
-
-        voltage_tens = floor(voltage / 10)
-        voltage = voltage - (voltage_tens * 10)
-
-        current_int = floor(current)
-        current_frac = current - current_int
-
-        data = make_row_bar(current_int, 2, invert) + make_row_bar(current_frac * 10.0, 1, invert) + (BLANK_ROW * 2) + make_row_bar(voltage_tens, 2, invert) + make_row_bar(voltage, 1, invert)
-        return RenderResult(data=data)
 
 class PortUI:
     ports: list[PortConfig]
@@ -100,14 +64,14 @@ class PortUI:
         for port in self.ports:
             res = port.render()
             if not res.data:
-                if port.matrix not in all_images:
-                    all_images[port.matrix] = None
+                if port.render_info.matrix not in all_images:
+                    all_images[port.render_info.matrix] = None
                 continue
 
-            image_data = all_images.get(port.matrix, None)
+            image_data = all_images.get(port.render_info.matrix, None)
             if not image_data:
                 image_data = ([0x00] * LED_MATRIX_ROWS) * LED_MATRIX_COLS
-                all_images[port.matrix] = image_data
+                all_images[port.render_info.matrix] = image_data
     
             data = res.data
             if len(data) != LED_MATRIX_COLS * ICON_ROWS:
@@ -166,10 +130,13 @@ def main():
 
         if "led_matrix" in ele:
             ui_ports.append(PortConfig(
-                charge=charge_port,
-                usb=usb_port,
-                display=display_port,
-                matrix=LED_MATRICES[ele["led_matrix"]["id"]],
+                render_info=RenderInfo(
+                    charge=charge_port,
+                    usb=usb_port,
+                    display=display_port,
+                    matrix=LED_MATRICES[ele["led_matrix"]["id"]],
+                    usbinfo=None,
+                ),
                 row=((ele["led_matrix"]["pos"] * PER_POS_OFFSET) + 2),
             ))
 
