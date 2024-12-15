@@ -13,6 +13,9 @@ from math import floor
 from typing import Optional
 from render import RenderInfo, RenderResult, make_row_bar, BLANK_ROW
 
+PER_POS_OFFSET = (LED_MATRIX_ROWS - 1) // 3
+ICON_ROWS = PER_POS_OFFSET - 3 # Top line, top space, bottom space
+
 @dataclass(frozen=True)
 class PortConfig:
     charge: ChargePort | None
@@ -106,10 +109,12 @@ class PortUI:
                 all_images[port.matrix] = image_data
     
             data = res.data
-            lines = len(data) // LED_MATRIX_COLS
+            if len(data) != LED_MATRIX_COLS * ICON_ROWS:
+                raise ValueError(f"Invalid icon size expected={LED_MATRIX_COLS * ICON_ROWS} actual={len(data)} data={data}")
+
             for col in range(LED_MATRIX_COLS):
                 start = (col * LED_MATRIX_ROWS) + port.row
-                image_data[start:start+lines] = data[col::9]
+                image_data[start:start+ICON_ROWS] = data[col::9]
 
         for matrix, image_data in all_images.items():
             if not image_data:
@@ -127,8 +132,6 @@ class PortUI:
                 matrix.stage_col(col, data)
 
             matrix.flush_cols()
-
-PER_POS_OFFSET = LED_MATRIX_ROWS // 3
 
 def main():
     LED_MATRICES: dict[str, LEDMatrix] = {}
