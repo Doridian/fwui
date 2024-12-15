@@ -11,37 +11,7 @@ from icons import USB2_ICON, USB3_ICON
 from usbdevs import USB_DEVICES
 from math import floor
 from typing import Optional
-from render import RenderInfo, RenderResult
-
-BLANK_ROW = [0x00] * LED_MATRIX_COLS
-FULL_ROW = [0xFF] * LED_MATRIX_COLS
-
-def _make_row_bar(width: float, height: int = 1, reverse: bool = False) -> list[int]:
-    if width >= LED_MATRIX_COLS:
-        return FULL_ROW * height
-    if width <= 0:
-        return BLANK_ROW * height
-    
-    width_int = int(width)
-    width_frac = float(width) - float(width_int)
-    end_width_int = LED_MATRIX_COLS - width_int
-
-    frac_piece = []
-    if width_frac > 0:
-        end_width_int -= 1
-        frac_piece = [int(width_frac * 0xFF)]
-
-    ret = (([0xFF] * width_int) + frac_piece + ([0x00] * end_width_int)) * height
-    if reverse:
-        ret = ret[::-1]
-    return ret
-
-def _make_multirow_bar(width: float, height: int = 1, reverse: bool = False) -> list[int]:
-    res = []
-    while width > 0:
-        res += _make_row_bar(width, height, reverse)
-        width -= LED_MATRIX_COLS
-    return res
+from render import RenderInfo, RenderResult, make_row_bar, BLANK_ROW
 
 @dataclass(frozen=True)
 class PortConfig:
@@ -113,7 +83,7 @@ class PortConfig:
         current_int = floor(current)
         current_frac = current - current_int
 
-        data = _make_row_bar(current_int, 2, invert) + _make_row_bar(current_frac * 10.0, 1, invert) + (BLANK_ROW * 2) + _make_row_bar(voltage_tens, 2, invert) + _make_row_bar(voltage, 1, invert)
+        data = make_row_bar(current_int, 2, invert) + make_row_bar(current_frac * 10.0, 1, invert) + (BLANK_ROW * 2) + make_row_bar(voltage_tens, 2, invert) + make_row_bar(voltage, 1, invert)
         return RenderResult(data=data)
 
 class PortUI:
