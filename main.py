@@ -32,7 +32,7 @@ class PortConfig:
         if res:
             return res
         
-        return RenderResult(data=None, allow_sleep=True)
+        return RenderResult(data=None)
 
     def render_usb(self) -> Optional[RenderResult]:
         if not self.usb:
