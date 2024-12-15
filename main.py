@@ -12,9 +12,10 @@ from usbdevs import USB_MATCHERS
 from typing import Optional
 from render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge
 
-@dataclass(frozen=True)
+@dataclass(kw_only=True, frozen=True)
 class PortConfig:
     render_info: RenderInfo
+    usb_port: Optional[USBPort]
     row: int
 
     def render(self) -> RenderResult:
@@ -29,15 +30,15 @@ class PortConfig:
         return RenderResult(data=None)
 
     def render_usb(self) -> Optional[RenderResult]:
-        if not self.render_info.usb:
+        if not self.usb_port:
             return None
-        
-        port_info = self.render_info.usb.get_info()
+
+        port_info = self.usb_port.get_info()
         if not port_info:
             return None
 
-        render_info = self.render_info.augment_usbinfo(
-            usbinfo=port_info,
+        render_info = self.render_info.augment_usb(
+            usb=port_info,
         )
         for matcher, usbdev in USB_MATCHERS:
             if not matcher.matches(render_info):
@@ -50,7 +51,7 @@ class PortConfig:
         if res:
             return res
 
-        if port_info.is_usb3:
+        if port_info.speed >= 5000:
             return RenderResult(data=USB3_ICON)
         return RenderResult(data=USB2_ICON)
 
@@ -125,18 +126,18 @@ def main():
             display_port = DisplayPort(ele["display"])
 
         usb_port = None
-        if "usb2" in ele or "usb3" in ele:
-            usb_port = USBPort(ele["usb2"], ele["usb3"])
+        if "usb" in ele:
+            usb_port = USBPort(ele["usb"])
 
         if "led_matrix" in ele:
             ui_ports.append(PortConfig(
                 render_info=RenderInfo(
                     charge=charge_port,
-                    usb=usb_port,
                     display=display_port,
                     matrix=LED_MATRICES[ele["led_matrix"]["id"]],
-                    usbinfo=None,
+                    usb=None,
                 ),
+                usb_port=usb_port,
                 row=((ele["led_matrix"]["pos"] * PER_POS_OFFSET) + 2),
             ))
 

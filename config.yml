@@ -4,8 +4,9 @@ ports:
  # 3     6
  - id: 1
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:004
-   usb2: /sys/bus/usb/devices/7-1
-   usb3: /sys/bus/usb/devices/8-1
+   usb:
+    - /sys/bus/usb/devices/7-1 # 2
+    - /sys/bus/usb/devices/8-1 # 3
    # usb4: TODO
    display: /sys/class/drm/card*-DP-4
    led_matrix:
@@ -14,24 +15,27 @@ ports:
 
  - id: 2
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:003
-   usb2: /sys/bus/usb/devices/1-1
-   usb3: /sys/bus/usb/devices/2-1
+   usb:
+    - /sys/bus/usb/devices/1-1 # 2
+    - /sys/bus/usb/devices/2-1 # 3
    display: /sys/class/drm/card*-DP-5
    led_matrix:
     id: left
     pos: 1
 
  - id: 3
-   usb2: /sys/bus/usb/devices/1-2.3
-   usb3: /sys/bus/usb/devices/2-2.3
+   usb:
+    - /sys/bus/usb/devices/1-2.3 # 2
+    - /sys/bus/usb/devices/2-2.3 # 3
    led_matrix:
     id: left
     pos: 2
 
  - id: 4
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:001
-   usb2: /sys/bus/usb/devices/5-1
-   usb3: /sys/bus/usb/devices/6-1
+   usb:
+    - /sys/bus/usb/devices/5-1 # 2
+    - /sys/bus/usb/devices/6-1 # 3
    # usb4: TODO
    display: /sys/class/drm/card*-DP-3
    led_matrix:
@@ -40,15 +44,17 @@ ports:
 
  - id: 5
    pd: /sys/class/power_supply/ucsi-source-psy-USBC000:002
-   usb2: /sys/bus/usb/devices/1-2.1
-   usb3: /sys/bus/usb/devices/2-2.1
+   usb:
+    - /sys/bus/usb/devices/1-2.1 # 2
+    - /sys/bus/usb/devices/2-2.1 # 3
    led_matrix:
     id: right
     pos: 1
 
  - id: 6
-   usb2: /sys/bus/usb/devices/1-2.2
-   usb3: /sys/bus/usb/devices/2-2.2
+   usb:
+    - /sys/bus/usb/devices/1-2.2 # 2
+    - /sys/bus/usb/devices/2-2.2 # 3
    led_matrix:
     id: right
     pos: 2

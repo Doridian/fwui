@@ -19,7 +19,7 @@ class USBDeviceIDMatcher(USBDeviceMatcher):
         self.pid = pid
 
     def matches(self, info: RenderInfo) -> bool:
-        return info.usbinfo.vid == self.vid and info.usbinfo.pid == self.pid
+        return info.usb.vid == self.vid and info.usb.pid == self.pid
 
 class USBDevice:
     def render(self, info: RenderInfo) -> Optional[RenderResult]:
@@ -70,7 +70,7 @@ class USBDisplayDevice(USBConnectionDevice):
 
 class EthernetDevice(USBConnectionDevice):
     def is_connected(self, info: RenderInfo) -> bool:
-        return info.usb.read_subfile("*/net/*/operstate", info.usbinfo.is_usb3) == "up"
+        return info.usb.read_subfile("*/net/*/operstate") == "up"
 
 _ETHERNET_DEVICE = EthernetDevice(
     connected_icon=parse_str_info(
