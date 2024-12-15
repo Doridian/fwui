@@ -11,10 +11,7 @@ from icons import USB2_ICON, USB3_ICON
 from usbdevs import USB_DEVICES
 from math import floor
 from typing import Optional
-from render import RenderInfo, RenderResult, make_row_bar, BLANK_ROW
-
-PER_POS_OFFSET = (LED_MATRIX_ROWS - 1) // 3
-ICON_ROWS = PER_POS_OFFSET - 3 # Top line, top space, bottom space
+from render import RenderInfo, RenderResult, make_row_bar, BLANK_ROW, PER_POS_OFFSET, ICON_ROWS
 
 @dataclass(frozen=True)
 class PortConfig:

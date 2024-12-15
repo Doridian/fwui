@@ -2,10 +2,13 @@ from dataclasses import dataclass, field
 from typing import Optional
 from usb import USBPort, USBPortInfo
 from display import DisplayPort
-from ledmatrix import LEDMatrix, LED_MATRIX_COLS
+from ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 
 BLANK_ROW = [0x00] * LED_MATRIX_COLS
 FULL_ROW = [0xFF] * LED_MATRIX_COLS
+
+PER_POS_OFFSET = (LED_MATRIX_ROWS - 1) // 3
+ICON_ROWS = PER_POS_OFFSET - 3 # Top line, top space, bottom space
 
 def make_row_bar(width: float, height: int = 1, reverse: bool = False) -> list[int]:
     if width >= LED_MATRIX_COLS:
