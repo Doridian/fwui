@@ -21,8 +21,6 @@ class PortConfig:
     matrix: LEDMatrix
     row: int
 
-    # Rows are 9 bytes long
-
     def render(self) -> RenderResult:
         res = self.render_usb()
         if res:
