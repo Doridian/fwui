@@ -9,14 +9,21 @@ class USBDevice:
     def render(self, info: RenderInfo) -> Optional[RenderResult]:
         return None
 
-class USBDevice(USBDevice):
+class USBBasicDevice(USBDevice):
+    icon: list[int]
+
+    def __init__(self, icon: list[int]):
+        self.icon = icon
+
+    def render(self, info: RenderInfo) -> Optional[RenderResult]:
+        return RenderResult(data=self.icon)
+
+class USBConnectionDevice(USBDevice):
     connected_icon: list[int]
     disconnected_icon: list[int]
 
-    def __init__(self, connected_icon: list[int], disconnected_icon: Optional[list[int]] = None):
+    def __init__(self, connected_icon: list[int], disconnected_icon: list[int]):
         self.connected_icon = connected_icon
-        if disconnected_icon is None:
-            disconnected_icon = connected_icon.copy()
         self.disconnected_icon = disconnected_icon
 
     def is_connected(self, info: RenderInfo) -> bool:
@@ -27,7 +34,7 @@ class USBDevice(USBDevice):
             return RenderResult(data=self.connected_icon)
         return RenderResult(data=self.disconnected_icon)
 
-class USBDisplayDevice(USBDevice):
+class USBDisplayDevice(USBConnectionDevice):
     invalid_icon: list[int]
 
     def __init__(self, connected_icon: list[int], disconnected_icon: list[int], invalid_icon: Optional[list[int]]):
@@ -49,7 +56,7 @@ USB_DEVICES: dict[USBPortInfo, USBDevice] = {}
 
 # Define devices below
 
-class EthernetDevice(USBDevice):
+class EthernetDevice(USBConnectionDevice):
     _ETHERNET_DISCONNECTED_ICON = parse_str_info(
         " ####### " +
         " # 3 3 # " +
@@ -79,7 +86,7 @@ class EthernetDevice(USBDevice):
 
 _ETHERNET_DEVICE = EthernetDevice()
 
-_AUDIO_DEVICE = USBDevice(parse_str_info(
+_AUDIO_DEVICE = USBBasicDevice(parse_str_info(
      "      #  " +
     "     ##  " +
     "  ### #  " +
@@ -90,7 +97,7 @@ _AUDIO_DEVICE = USBDevice(parse_str_info(
     "      #  "
 ))
 
-_SD_DEVICE = USBDevice(parse_str_info(
+_SD_DEVICE = USBBasicDevice(parse_str_info(
     " #####   " +
     " #    #  " +
     " ##    # " +
@@ -101,7 +108,7 @@ _SD_DEVICE = USBDevice(parse_str_info(
     " ####### "
 ))
 
-_MICROSD_DEVICE = USBDevice(parse_str_info(
+_MICROSD_DEVICE = USBBasicDevice(parse_str_info(
     "  ####   " +
     "  #   #  " +
     "  #   #  " +
