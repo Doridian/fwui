@@ -8,7 +8,7 @@ from usb import USBPort
 from dataclasses import dataclass
 from time import sleep
 from icons import USB2_ICON, USB3_ICON
-from usbdevs import USB_MATCHERS
+from devices import DEVICE_MATCHERS
 from typing import Optional
 from render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge
 
@@ -34,24 +34,27 @@ class PortConfig:
             return None
 
         port_info = self.usb_port.get_info()
-        if not port_info:
-            return None
+        render_info = self.render_info
+        if port_info:
+            render_info = self.render_info.augment_usb(
+                usb=port_info,
+            )
 
-        render_info = self.render_info.augment_usb(
-            usb=port_info,
-        )
-        for matcher, usbdev in USB_MATCHERS:
+        for matcher, usbdev in DEVICE_MATCHERS:
             if not matcher.matches(render_info):
                 continue
             res = usbdev.render(render_info)
             if res:
                 return res
 
+        if not render_info.usb:
+            return None
+
         res = render_charge(info=render_info, input_only=True)
         if res:
             return res
 
-        if port_info.speed >= 5000:
+        if render_info.usb.speed >= 5000:
             return RenderResult(data=USB3_ICON)
         return RenderResult(data=USB2_ICON)
 

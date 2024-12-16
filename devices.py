@@ -5,12 +5,12 @@ from abc import ABC, abstractmethod
 
 # All icons should be 9x8 pixels
 
-class USBDeviceMatcher(ABC):
+class DeviceMatcher(ABC):
     @abstractmethod
     def matches(self, info: RenderInfo) -> bool:
         pass
 
-class USBDeviceIDMatcher(USBDeviceMatcher):
+class USBDeviceIDMatcher(DeviceMatcher):
     vid: int
     pid: int
 
@@ -19,13 +19,13 @@ class USBDeviceIDMatcher(USBDeviceMatcher):
         self.pid = pid
 
     def matches(self, info: RenderInfo) -> bool:
-        return info.usb.vid == self.vid and info.usb.pid == self.pid
+        return info.usb and info.usb.vid == self.vid and info.usb.pid == self.pid
 
-class USBDevice:
+class Device:
     def render(self, info: RenderInfo) -> Optional[RenderResult]:
         return None
 
-class USBBasicDevice(USBDevice):
+class DeviceIcon(Device):
     icon: list[int]
 
     def __init__(self, icon: list[int]):
@@ -34,7 +34,7 @@ class USBBasicDevice(USBDevice):
     def render(self, info: RenderInfo) -> Optional[RenderResult]:
         return RenderResult(data=self.icon)
 
-class USBConnectionDevice(USBDevice):
+class ConnectionDevice(Device):
     connected_icon: list[int]
     disconnected_icon: list[int]
 
@@ -50,7 +50,7 @@ class USBConnectionDevice(USBDevice):
             return RenderResult(data=self.connected_icon)
         return RenderResult(data=self.disconnected_icon)
 
-class USBDisplayDevice(USBConnectionDevice):
+class DisplayDevice(ConnectionDevice):
     invalid_icon: list[int]
 
     def __init__(self, connected_icon: list[int], disconnected_icon: list[int], invalid_icon: Optional[list[int]]):
@@ -68,7 +68,7 @@ class USBDisplayDevice(USBConnectionDevice):
             return RenderResult(data=self.invalid_icon, allow_sleep=False)
         return super().render(info)
 
-class EthernetDevice(USBConnectionDevice):
+class EthernetDevice(ConnectionDevice):
     def is_connected(self, info: RenderInfo) -> bool:
         return info.usb.read_subfile("*/net/*/operstate") == "up"
 
@@ -95,7 +95,7 @@ _ETHERNET_DEVICE = EthernetDevice(
     ),
 )
 
-_AUDIO_DEVICE = USBBasicDevice(parse_str_info(
+_AUDIO_DEVICE = DeviceIcon(parse_str_info(
      "      #  " +
     "     ##  " +
     "  ### #  " +
@@ -106,7 +106,7 @@ _AUDIO_DEVICE = USBBasicDevice(parse_str_info(
     "      #  "
 ))
 
-_SD_DEVICE = USBBasicDevice(parse_str_info(
+_SD_DEVICE = DeviceIcon(parse_str_info(
     " #####   " +
     " #    #  " +
     " ##    # " +
@@ -117,7 +117,7 @@ _SD_DEVICE = USBBasicDevice(parse_str_info(
     " ####### "
 ))
 
-_MICROSD_DEVICE = USBBasicDevice(parse_str_info(
+_MICROSD_DEVICE = DeviceIcon(parse_str_info(
     "  ####   " +
     "  #   #  " +
     "  #   #  " +
@@ -128,7 +128,7 @@ _MICROSD_DEVICE = USBBasicDevice(parse_str_info(
     "  ###### "
 ))
 
-_DISPLAY_PORT_DEVICE = USBDisplayDevice(
+_DISPLAY_PORT_DEVICE = DisplayDevice(
     connected_icon=parse_str_info(
         "   ####  " +
         "  #   #  " +
@@ -152,7 +152,7 @@ _DISPLAY_PORT_DEVICE = USBDisplayDevice(
     invalid_icon=None,
 )
 
-_HDMI_DEVICE = USBDisplayDevice(
+_HDMI_DEVICE = DisplayDevice(
     connected_icon=parse_str_info(
         "   ####  " +
         "  #   #  " +
@@ -176,10 +176,10 @@ _HDMI_DEVICE = USBDisplayDevice(
     invalid_icon=None,
 )
 
-USB_MATCHERS: list[tuple[USBDeviceMatcher, USBDevice]] = []
+DEVICE_MATCHERS: list[tuple[DeviceMatcher, Device]] = []
 
-def add_matcher(matcher: USBDeviceMatcher, device: USBDevice):
-    USB_MATCHERS.append((matcher, device))
+def add_matcher(matcher: DeviceMatcher, device: Device):
+    DEVICE_MATCHERS.append((matcher, device))
 
 # Define devices below
 
