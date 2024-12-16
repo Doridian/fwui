@@ -1,5 +1,4 @@
 from os import path
-from typing import Optional
 from dataclasses import dataclass
 
 @dataclass(kw_only=True, frozen=True, eq=True)
@@ -20,7 +19,7 @@ class DisplayPort:
         except FileNotFoundError:
             return ""
 
-    def get_info(self) -> Optional[DisplayPortInfo]:
+    def get_info(self) -> DisplayPortInfo | None:
         status = self.read_subfile("status")
         if not status:
             return None

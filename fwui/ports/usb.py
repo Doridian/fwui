@@ -1,52 +1,51 @@
 from os import path
-from typing import Optional
 from glob import glob
 
 class USBPortInfo:
     devpath: str
-    filecache: dict[str, str]
+    filecache: dict[str, str  | None]
 
     def __init__(self, devpath: str):
         super().__init__()
         self.devpath = devpath
         self.filecache = {}
 
-    def read_subfile(self, file: str) -> str:
+    def read_subfile(self, file: str) -> str | None:
         if file in self.filecache:
             return self.filecache[file]
         res = self._read_subfile(file)
         self.filecache[file] = res
         return res
 
-    def _read_subfile(self, file: str) -> str:
+    def _read_subfile(self, file: str) -> str | None:
         devfile = path.join(self.devpath, file)
         globs = glob(devfile)
         if not globs:
-            return ""
+            return None
         devfile = globs[0]
 
         try:
             with open(devfile, "r") as f:
                 return f.read().strip()
         except FileNotFoundError:
-            return ""
+            return None
 
-    def read_int_subfile(self, file: str, base: int = 10) -> Optional[int]:
+    def read_int_subfile(self, file: str, base: int = 10) -> int | None:
         value = self.read_subfile(file)
-        if not value:
+        if value is None:
             return None
         return int(value, base)
 
     @property
-    def vid(self) -> Optional[int]:
+    def vid(self) -> int | None:
         return self.read_int_subfile("idVendor", 16)
 
     @property
-    def pid(self) -> Optional[int]:
+    def pid(self) -> int | None:
         return self.read_int_subfile("idProduct", 16)
 
     @property
-    def speed(self) -> Optional[int]:
+    def speed(self) -> int | None:
         return self.read_int_subfile("speed")
 
 class USBPort:
@@ -56,7 +55,7 @@ class USBPort:
         super().__init__()
         self.subdevs = subdevs
 
-    def get_info(self) -> Optional[USBPortInfo]:
+    def get_info(self) -> USBPortInfo | None:
         for subdev in self.subdevs:
             info = USBPortInfo(subdev)
             if info.vid and info.pid:

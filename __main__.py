@@ -9,18 +9,28 @@ from dataclasses import dataclass
 from time import sleep
 from fwui.icons import USB2_ICON, USB3_ICON
 from fwui.devices import DEVICE_MATCHERS
-from typing import Optional
 from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge, SEPARATOR_PIXEL, BLANK_PIXEL
 from threading import Thread
 
-@dataclass(kw_only=True, frozen=True)
+@dataclass(kw_only=True)
 class PortConfig:
     render_info: RenderInfo
-    usb_port: Optional[USBPort]
+    usb_port: USBPort | None
     row: int
+    last_render: RenderResult | None = None
 
     def render(self) -> RenderResult:
-        res = self.render_usb()
+        res = self._render()
+        if res == self.last_render:
+            allow_sleep = res.allow_sleep
+        else:
+            allow_sleep = False
+            self.last_render = res
+
+        return RenderResult(data=res.data, allow_sleep=allow_sleep)
+
+    def _render(self) -> RenderResult:
+        res = self._render_usb()
         if res:
             return res
 
@@ -30,7 +40,7 @@ class PortConfig:
         
         return RenderResult(data=None)
 
-    def render_usb(self) -> Optional[RenderResult]:
+    def _render_usb(self) -> RenderResult | None:
         if not self.usb_port:
             return None
 

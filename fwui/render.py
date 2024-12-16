@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Optional
 from .ports.usb import USBPortInfo
 from .ports.charge import ChargePort
 from .ports.display import DisplayPort
@@ -62,8 +61,7 @@ class RenderResult:
     data: list[int] | None
     allow_sleep: bool = field(default=True)
 
-
-def render_charge(info: RenderInfo, input_only: bool = False) -> Optional[RenderResult]:
+def render_charge(info: RenderInfo, input_only: bool = False) -> RenderResult | None:
     if not info.charge:
         return None
 
