@@ -20,7 +20,6 @@ class LEDMatrix:
 
     def send_rpc(self, id: int, payload: bytes) -> bytes:
         self.send_command(id, payload)
-
         return self.port.read(32)
 
     def wakeup(self) -> None:
@@ -43,6 +42,12 @@ class LEDMatrix:
 
     def fill(self, on: bool) -> None:
         self.draw_bw(bytes([0xFF if on else 0x00] * 39))
+
+    def clear(self, sleep: bool = False) -> None:
+        self.wakeup()
+        self.fill(False)
+        if sleep:
+            self.sleep()
 
     def stage_col(self, col: int, data: bytes) -> None:
         if len(data) != LED_MATRIX_ROWS:

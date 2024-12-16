@@ -6,7 +6,10 @@ from .ports.display import DisplayPort
 from .ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 from math import floor
 
-BLANK_ROW = [0x00] * LED_MATRIX_COLS
+BLANK_PIXEL = 0x00
+SEPARATOR_PIXEL = 0x22
+
+BLANK_ROW = [BLANK_PIXEL] * LED_MATRIX_COLS
 FULL_ROW = [0xFF] * LED_MATRIX_COLS
 
 PER_POS_OFFSET = (LED_MATRIX_ROWS - 1) // 3
