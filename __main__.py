@@ -5,29 +5,44 @@ from fwui.ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 from fwui.ports.charge import ChargePort
 from fwui.ports.display import DisplayPort
 from fwui.ports.usb import USBPort
-from dataclasses import dataclass
 from time import sleep
 from fwui.icons import USB2_ICON, USB3_ICON
 from fwui.devices import DEVICE_MATCHERS
 from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge, SEPARATOR_PIXEL, BLANK_PIXEL
 from threading import Thread
+from datetime import datetime, timedelta
 
-@dataclass(kw_only=True)
+TIME_ZERO = datetime.fromtimestamp(0)
+sleep_idle_seconds = timedelta(seconds=60)
+sleep_individual_ports = False
+
 class PortConfig:
     render_info: RenderInfo
     usb_port: USBPort | None
     row: int
-    last_render: RenderResult | None = None
 
-    def render(self) -> RenderResult:
+    last_sleep_block: datetime
+    _last_render: RenderResult | None = None
+
+    def __init__(self, render_info: RenderInfo, usb_port: USBPort | None, row: int):
+        super().__init__()
+        self.render_info = render_info
+        self.usb_port = usb_port
+        self.row = row
+        self.last_sleep_block = datetime.now()
+
+    def render(self) -> list[int] | None:
         res = self._render()
-        if res == self.last_render:
+        if res == self._last_render:
             allow_sleep = res.allow_sleep
         else:
             allow_sleep = False
-            self.last_render = res
+            self._last_render = res
 
-        return RenderResult(data=res.data, allow_sleep=allow_sleep)
+        if not allow_sleep:
+            self.last_sleep_block = datetime.now()
+
+        return res.data
 
     def _render(self) -> RenderResult:
         res = self._render_usb()
@@ -78,11 +93,10 @@ class PortUI:
         self.ports = ports
 
     def _render_port(self, port: PortConfig, image_data: list[int]) -> None:
-        res = port.render()
-        if not res.data:
+        data = port.render()
+        if not data:
             return
 
-        data = res.data
         if len(data) != LED_MATRIX_COLS * ICON_ROWS:
             raise ValueError(f"Invalid icon size expected={LED_MATRIX_COLS * ICON_ROWS} actual={len(data)} data={data}")
 
@@ -110,11 +124,20 @@ class PortUI:
     def render(self) -> None:
         all_images: dict[LEDMatrix, list[int] | None] = {}
         all_threads: list[Thread] = []
+        last_sleep_blocks: dict[LEDMatrix, datetime] = {}
+
         for port in self.ports:
             image_data = all_images.get(port.render_info.matrix, None)
             if not image_data:
                 image_data = [BLANK_PIXEL] * (LED_MATRIX_COLS * LED_MATRIX_ROWS)
                 all_images[port.render_info.matrix] = image_data
+
+            if sleep_individual_ports:
+                if port.last_sleep_block + sleep_idle_seconds < datetime.now():
+                    image_data = None
+            elif last_sleep_blocks.get(port.render_info.matrix, TIME_ZERO) < port.last_sleep_block:
+                last_sleep_blocks[port.render_info.matrix] = port.last_sleep_block
+
             t = Thread(target=self._render_port, args=(port, image_data))
             all_threads.append(t)
             t.start()
@@ -124,6 +147,10 @@ class PortUI:
         all_threads.clear()
 
         for matrix, image_data in all_images.items():
+            if not sleep_individual_ports:
+                last_sleep_block = last_sleep_blocks.get(matrix, TIME_ZERO)
+                if last_sleep_block and (last_sleep_block + sleep_idle_seconds < datetime.now()):
+                    image_data = None
             t = Thread(target=self._draw_matrix, args=(matrix, image_data))
             all_threads.append(t)
             t.start()
@@ -152,11 +179,15 @@ def clear_matrices(sleep: bool) -> None:
         t.join()
 
 def main():
+    global sleep_idle_seconds, sleep_individual_ports
     with open("config.yml", "r") as f:
-        CONFIG = yaml_load(f)
+        config = yaml_load(f)
+
+    sleep_idle_seconds = timedelta(seconds=config["sleep_idle_seconds"])
+    sleep_individual_ports = config["sleep_individual_ports"]
 
     print("Loading LED matrices...")
-    for ele in CONFIG["led_matrices"]:
+    for ele in config["led_matrices"]:
         matrix = LEDMatrix(ele["id"], ele["serial"])
         LED_MATRICES[ele["id"]] = matrix
 
@@ -168,7 +199,7 @@ def main():
 
     ui_ports: list[PortConfig] = []
 
-    for ele in CONFIG["ports"]:
+    for ele in config["ports"]:
         charge_port = None
         if "pd" in ele:
             charge_port = ChargePort(ele["pd"])
