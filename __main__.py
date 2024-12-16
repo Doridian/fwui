@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 TIME_ZERO = datetime.fromtimestamp(0)
 sleep_idle_seconds = timedelta(seconds=60)
 sleep_individual_ports = False
+frame_time_seconds = 1.0
 
 class PortConfig:
     render_info: RenderInfo
@@ -179,13 +180,16 @@ def clear_matrices(sleep: bool) -> None:
         t.join()
 
 def main():
-    global sleep_idle_seconds, sleep_individual_ports
+    global sleep_idle_seconds, sleep_individual_ports, frame_time_seconds
     with open("config.yml", "r") as f:
         config = yaml_load(f)
 
     sleep_config = config["sleep"]
     sleep_idle_seconds = timedelta(seconds=sleep_config["idle_seconds"])
     sleep_individual_ports = sleep_config["individual_ports"]
+
+    render_config = config["render"]
+    frame_time_seconds = render_config["frame_time_seconds"]
 
     print("Loading LED matrices...")
     for ele in config["led_matrices"]:
@@ -232,7 +236,7 @@ def main():
     while True:
         ui.render()
         print("Render OK")
-        sleep(1)
+        sleep(frame_time_seconds)
 
 if __name__ == "__main__":
     try:

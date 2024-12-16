@@ -66,6 +66,9 @@ led_matrices:
 - id: left
   serial: /dev/serial/by-path/pci-0000:c4:00.3-usb-0:4.2:1.0
 
+render:
+  frame_time_seconds: 0.5
+
 sleep:
   idle_seconds: 20
   individual_ports: false
