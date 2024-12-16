@@ -102,7 +102,7 @@ class PortUI:
         for port in self.ports:
             image_data = all_images.get(port.render_info.matrix, None)
             if not image_data:
-                image_data = BLANK_ROW * LED_MATRIX_ROWS
+                image_data = [BLANK_PIXEL] * (LED_MATRIX_COLS * LED_MATRIX_ROWS)
                 all_images[port.render_info.matrix] = image_data
             t = Thread(target=self._render_port, args=(port, image_data))
             all_threads.append(t)
