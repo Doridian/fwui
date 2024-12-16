@@ -89,6 +89,7 @@ class PortUI:
             return
 
         matrix.wakeup()
+        #matrix.draw(bytes(image_data))
 
         for col in range(LED_MATRIX_COLS):
             data = image_data[col * LED_MATRIX_ROWS:(col + 1) * LED_MATRIX_ROWS]

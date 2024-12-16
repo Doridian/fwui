@@ -22,6 +22,9 @@ class LEDMatrix:
         self.send_command(id, payload)
         return self.port.read(32)
 
+    def version(self) -> bytes:
+        return self.send_rpc(0x20, bytes())
+
     def wakeup(self) -> None:
         self.set_sleep(False)
         _ = self.send_rpc(0x03, bytes())
@@ -48,6 +51,11 @@ class LEDMatrix:
         self.fill(False)
         if sleep:
             self.sleep()
+
+    def draw(self, bitmap: bytes) -> None:
+        if len(bitmap) != LED_MATRIX_ROWS * LED_MATRIX_COLS:
+            raise ValueError(f"Bitmap must be {LED_MATRIX_ROWS * LED_MATRIX_COLS} bytes long")
+        self.send_command(0x70, bitmap)
 
     def stage_col(self, col: int, data: bytes) -> None:
         if len(data) != LED_MATRIX_ROWS:
