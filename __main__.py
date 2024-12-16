@@ -183,8 +183,9 @@ def main():
     with open("config.yml", "r") as f:
         config = yaml_load(f)
 
-    sleep_idle_seconds = timedelta(seconds=config["sleep_idle_seconds"])
-    sleep_individual_ports = config["sleep_individual_ports"]
+    sleep_config = config["sleep"]
+    sleep_idle_seconds = timedelta(seconds=sleep_config["idle_seconds"])
+    sleep_individual_ports = sleep_config["individual_ports"]
 
     print("Loading LED matrices...")
     for ele in config["led_matrices"]:
