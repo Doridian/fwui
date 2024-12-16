@@ -10,7 +10,7 @@ from time import sleep
 from fwui.icons import USB2_ICON, USB3_ICON
 from fwui.devices import DEVICE_MATCHERS
 from typing import Optional
-from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge, SEPARATOR_PIXEL, BLANK_PIXEL, BLANK_ROW
+from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge, SEPARATOR_PIXEL, BLANK_PIXEL
 from threading import Thread
 
 @dataclass(kw_only=True, frozen=True)
