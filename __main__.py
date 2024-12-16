@@ -89,6 +89,10 @@ class PortUI:
 
         for matrix, image_data in all_images.items():
             if not image_data:
+                if matrix.is_asleep:
+                    continue
+
+                matrix.fill(False)
                 matrix.sleep()
                 continue
 
