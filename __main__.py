@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
 from yaml import safe_load as yaml_load
-from ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
-from chargeport import ChargePort
-from display import DisplayPort
-from usb import USBPort
+from fwui.ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
+from fwui.ports.charge import ChargePort
+from fwui.ports.display import DisplayPort
+from fwui.ports.usb import USBPort
 from dataclasses import dataclass
 from time import sleep
-from icons import USB2_ICON, USB3_ICON
-from devices import DEVICE_MATCHERS
+from fwui.icons import USB2_ICON, USB3_ICON
+from fwui.devices import DEVICE_MATCHERS
 from typing import Optional
-from render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge
+from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge
 
 @dataclass(kw_only=True, frozen=True)
 class PortConfig:
@@ -54,17 +54,19 @@ class PortConfig:
         if res:
             return res
 
-        if render_info.usb.speed >= 5000:
+        speed = render_info.usb.speed
+        if speed and speed >= 5000:
             return RenderResult(data=USB3_ICON)
         return RenderResult(data=USB2_ICON)
 
 class PortUI:
     ports: list[PortConfig]
     def __init__(self, ports: list[PortConfig]):
+        super().__init__()
         self.ports = ports
 
     def render(self) -> None:
-        all_images: dict[LEDMatrix, bytearray | None] = {}
+        all_images: dict[LEDMatrix, list[int] | None] = {}
         for port in self.ports:
             res = port.render()
             if not res.data:
@@ -98,7 +100,7 @@ class PortUI:
                     if port.row > 1:
                         data[port.row - 2] = 0x22
                 data[LED_MATRIX_ROWS - 1] = 0x22
-                matrix.stage_col(col, data)
+                matrix.stage_col(col, bytes(data))
 
             matrix.flush_cols()
 

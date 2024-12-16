@@ -1,6 +1,6 @@
-from typing import Optional
-from icons import parse_str_info, make_invalid_icon
-from render import RenderInfo, RenderResult
+from typing import override
+from .icons import parse_str_info, make_invalid_icon
+from .render import RenderInfo, RenderResult
 from abc import ABC, abstractmethod
 
 # All icons should be 9x8 pixels
@@ -15,23 +15,29 @@ class USBDeviceIDMatcher(DeviceMatcher):
     pid: int
 
     def __init__(self, vid: int, pid: int):
+        super().__init__()
         self.vid = vid
         self.pid = pid
 
+    @override
     def matches(self, info: RenderInfo) -> bool:
-        return info.usb and info.usb.vid == self.vid and info.usb.pid == self.pid
+        if not info.usb:
+            return False
+        return info.usb.vid == self.vid and info.usb.pid == self.pid
 
 class Device:
-    def render(self, info: RenderInfo) -> Optional[RenderResult]:
+    def render(self, info: RenderInfo) -> RenderResult | None:
         return None
 
 class DeviceIcon(Device):
     icon: list[int]
 
     def __init__(self, icon: list[int]):
+        super().__init__()
         self.icon = icon
 
-    def render(self, info: RenderInfo) -> Optional[RenderResult]:
+    @override
+    def render(self, info: RenderInfo) -> RenderResult | None:
         return RenderResult(data=self.icon)
 
 class ConnectionDevice(Device):
@@ -39,13 +45,15 @@ class ConnectionDevice(Device):
     disconnected_icon: list[int]
 
     def __init__(self, connected_icon: list[int], disconnected_icon: list[int]):
+        super().__init__()
         self.connected_icon = connected_icon
         self.disconnected_icon = disconnected_icon
 
     def is_connected(self, info: RenderInfo) -> bool:
         raise NotImplementedError()
 
-    def render(self, info: RenderInfo) -> Optional[RenderResult]:
+    @override
+    def render(self, info: RenderInfo) -> RenderResult | None:
         if self.is_connected(info):
             return RenderResult(data=self.connected_icon)
         return RenderResult(data=self.disconnected_icon)
@@ -53,23 +61,32 @@ class ConnectionDevice(Device):
 class DisplayDevice(ConnectionDevice):
     invalid_icon: list[int]
 
-    def __init__(self, connected_icon: list[int], disconnected_icon: list[int], invalid_icon: Optional[list[int]]):
+    def __init__(self, connected_icon: list[int], disconnected_icon: list[int], invalid_icon: list[int] | None):
         super().__init__(connected_icon=connected_icon, disconnected_icon=disconnected_icon)
         if not invalid_icon:
             invalid_icon = make_invalid_icon(connected_icon)
         self.invalid_icon = invalid_icon
 
+    @override
     def is_connected(self, info: RenderInfo) -> bool:
+        if not info.display:
+            return False
         display_info = info.display.get_info()
-        return display_info and display_info.connected
+        if not display_info:
+            return False
+        return display_info.connected
 
-    def render(self, info: RenderInfo) -> Optional[RenderResult]:
+    @override
+    def render(self, info: RenderInfo) -> RenderResult | None:
         if not info.display:
             return RenderResult(data=self.invalid_icon, allow_sleep=False)
         return super().render(info)
 
 class EthernetDevice(ConnectionDevice):
+    @override
     def is_connected(self, info: RenderInfo) -> bool:
+        if not info.usb:
+            return False
         return info.usb.read_subfile("*/net/*/operstate") == "up"
 
 _ETHERNET_DEVICE = EthernetDevice(

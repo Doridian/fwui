@@ -7,6 +7,7 @@ class USBPortInfo:
     filecache: dict[str, str]
 
     def __init__(self, devpath: str):
+        super().__init__()
         self.devpath = devpath
         self.filecache = {}
 
@@ -52,6 +53,7 @@ class USBPort:
     subdevs: list[str]
 
     def __init__(self, subdevs: list[str]):
+        super().__init__()
         self.subdevs = subdevs
 
     def get_info(self) -> Optional[USBPortInfo]:

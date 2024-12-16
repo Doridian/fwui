@@ -1,5 +1,4 @@
 from os import path
-from enum import Enum
 from typing import Optional
 from dataclasses import dataclass
 
@@ -11,6 +10,7 @@ class DisplayPort:
     display: str
 
     def __init__(self, display: str):
+        super().__init__()
         self.display = display
 
     def read_subfile(self, file: str) -> str:

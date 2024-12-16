@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Optional
-from usb import USBPortInfo
-from chargeport import ChargePort
-from display import DisplayPort
-from ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
+from .ports.usb import USBPortInfo
+from .ports.charge import ChargePort
+from .ports.display import DisplayPort
+from .ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 from math import floor
 
 BLANK_ROW = [0x00] * LED_MATRIX_COLS
@@ -33,7 +33,7 @@ def make_row_bar(width: float, height: int = 1, reverse: bool = False) -> list[i
     return ret
 
 def make_multirow_bar(width: float, height: int = 1, reverse: bool = False) -> list[int]:
-    res = []
+    res: list[int] = []
     while width > 0:
         res += make_row_bar(width, height, reverse)
         width -= LED_MATRIX_COLS
@@ -41,9 +41,9 @@ def make_multirow_bar(width: float, height: int = 1, reverse: bool = False) -> l
 
 @dataclass(kw_only=True, frozen=True, eq=True)
 class RenderInfo:
-    usb: USBPortInfo
-    display: Optional[DisplayPort]
-    charge: Optional[ChargePort]
+    usb: USBPortInfo | None
+    display: DisplayPort | None
+    charge: ChargePort | None
     matrix: LEDMatrix
 
     def augment_usb(self, usb: USBPortInfo) -> "RenderInfo":
@@ -56,7 +56,7 @@ class RenderInfo:
 
 @dataclass(kw_only=True, frozen=True)
 class RenderResult:
-    data: list[int]
+    data: list[int] | None
     allow_sleep: bool = field(default=True)
 
 

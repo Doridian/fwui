@@ -1,7 +1,7 @@
 # All icons should be 9x8 pixels
 
 def parse_str_info(src: str) -> list[int]:
-    res = []
+    res: list[int] = []
     for c in src:
         if c == " ":
             res.append(0)
@@ -84,7 +84,7 @@ _CROSS = parse_str_info(
     " #     # "
 )
 
-def make_invalid_icon(src: str) -> list[int]:
+def make_invalid_icon(src: list[int]) -> list[int]:
     icon = src.copy()
     for i, x in enumerate(_CROSS):
         if x:
