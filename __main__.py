@@ -184,12 +184,20 @@ def main():
     with open("config.yml", "r") as f:
         config = yaml_load(f)
 
-    sleep_config = config["sleep"]
-    sleep_idle_seconds = timedelta(seconds=sleep_config["idle_seconds"])
-    sleep_individual_ports = sleep_config["individual_ports"]
+    sleep_config = config.get("sleep")
+    if sleep_config:
+        config_sleep_idle_seconds = sleep_config.get("idle_seconds")
+        if config_sleep_idle_seconds:
+            sleep_idle_seconds = timedelta(seconds=config_sleep_idle_seconds)
+        config_sleep_individual_ports = sleep_config.get("individual_ports")
+        if config_sleep_individual_ports is not None:
+            sleep_individual_ports = bool(config_sleep_individual_ports)
 
-    render_config = config["render"]
-    frame_time_seconds = render_config["frame_time_seconds"]
+    render_config = config.get("render")
+    if render_config:
+        config_frame_time_seconds = render_config.get("frame_time_seconds")
+        if config_frame_time_seconds:
+            frame_time_seconds = float(config_frame_time_seconds)
 
     print("Loading LED matrices...")
     for ele in config["led_matrices"]:

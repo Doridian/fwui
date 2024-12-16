@@ -71,4 +71,4 @@ render:
 
 sleep:
   idle_seconds: 20
-  individual_ports: false
+  individual_ports: true
