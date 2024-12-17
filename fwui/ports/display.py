@@ -1,4 +1,4 @@
-from .devinfo import DevInfo
+from .base import DevInfo
 
 class DisplayInfo(DevInfo):
     @property
