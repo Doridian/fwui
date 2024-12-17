@@ -85,7 +85,7 @@ class EthernetDevice(ConnectionDevice):
     def is_connected(self, info: RenderInfo) -> bool:
         if not info.usb:
             return False
-        return info.usb.read_subfile("*/net/*/operstate") == "up"
+        return info.usb.read_str_subfile("*/net/*/operstate") == "up"
 
 _ETHERNET_DEVICE = EthernetDevice(
     connected_icon=parse_str_info(

@@ -22,6 +22,6 @@ class ChargePort:
 
     def get_info(self) -> ChargeInfo | None:
         info = ChargeInfo(self.devpath)
-        if info.read_subfile("online") is None:
+        if info.read_str_subfile("online") is None:
             return None
         return info

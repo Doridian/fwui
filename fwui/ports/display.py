@@ -3,7 +3,7 @@ from .base import DevInfo
 class DisplayInfo(DevInfo):
     @property
     def connected(self) -> bool:
-        return self.read_subfile("status") == "connected"
+        return self.read_str_subfile("status") == "connected"
 
 class DisplayPort:
     display: str
@@ -14,7 +14,7 @@ class DisplayPort:
 
     def get_info(self) -> DisplayInfo | None:
         info = DisplayInfo(self.display)
-        status = info.read_subfile("status")
+        status = info.read_str_subfile("status")
         if not status:
             return None
         return info
