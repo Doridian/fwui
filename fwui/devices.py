@@ -111,7 +111,7 @@ _ETHERNET_DEVICE = EthernetDevice(
 )
 
 _AUDIO_DEVICE = DeviceIcon(parse_str_info(
-     "      #  " +
+    "      #  " +
     "     ##  " +
     "  ### #  " +
     "  #   #  " +
