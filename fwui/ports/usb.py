@@ -1,6 +1,6 @@
 from .cachable import Cachable
 
-class USBPortInfo(Cachable):
+class USBInfo(Cachable):
     @property
     def vid(self) -> int | None:
         return self.read_int_subfile("idVendor", 16)
@@ -20,9 +20,9 @@ class USBPort:
         super().__init__()
         self.subdevs = subdevs
 
-    def get_info(self) -> USBPortInfo | None:
+    def get_info(self) -> USBInfo | None:
         for subdev in self.subdevs:
-            info = USBPortInfo(subdev)
+            info = USBInfo(subdev)
             if info.vid and info.pid:
                 return info
 

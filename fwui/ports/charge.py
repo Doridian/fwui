@@ -1,7 +1,6 @@
 from .cachable import Cachable
 
-
-class ChargePortInfo(Cachable):
+class ChargeInfo(Cachable):
     @property
     def current(self) -> int:
         return self.read_int_subfile("current_now", 10, 0) // 1000000
@@ -21,8 +20,8 @@ class ChargePort:
         super().__init__()
         self.devpath = devpath
 
-    def get_info(self) -> ChargePortInfo | None:
-        info = ChargePortInfo(self.devpath)
+    def get_info(self) -> ChargeInfo | None:
+        info = ChargeInfo(self.devpath)
         if info.read_subfile("online") is None:
             return None
         return info

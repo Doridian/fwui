@@ -1,6 +1,6 @@
 from .cachable import Cachable
 
-class DisplayPortInfo(Cachable):
+class DisplayInfo(Cachable):
     @property
     def connected(self) -> bool:
         return self.read_subfile("status") == "connected"
@@ -12,8 +12,8 @@ class DisplayPort:
         super().__init__()
         self.display = display
 
-    def get_info(self) -> DisplayPortInfo | None:
-        info = DisplayPortInfo(self.display)
+    def get_info(self) -> DisplayInfo | None:
+        info = DisplayInfo(self.display)
         status = info.read_subfile("status")
         if not status:
             return None
