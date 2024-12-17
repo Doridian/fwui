@@ -2,7 +2,7 @@ from os import path
 from glob import glob
 from typing import overload
 
-class Cachable:
+class DevInfo:
     _filecache: dict[str, str  | None]
     devpath: str
 
@@ -10,9 +10,6 @@ class Cachable:
         super().__init__()
         self.devpath = devpath
         self._filecache = {}
-
-    def clear_cache(self) -> None:
-        self._filecache.clear()
 
     @overload
     def read_subfile(self, file: str, default: str) -> str: ...

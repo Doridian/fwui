@@ -1,6 +1,6 @@
-from .cachable import Cachable
+from .devinfo import DevInfo
 
-class USBInfo(Cachable):
+class USBInfo(DevInfo):
     @property
     def vid(self) -> int | None:
         return self.read_int_subfile("idVendor", 16)

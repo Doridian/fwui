@@ -1,6 +1,6 @@
-from .cachable import Cachable
+from .devinfo import DevInfo
 
-class DisplayInfo(Cachable):
+class DisplayInfo(DevInfo):
     @property
     def connected(self) -> bool:
         return self.read_subfile("status") == "connected"

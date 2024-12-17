@@ -1,6 +1,6 @@
-from .cachable import Cachable
+from .devinfo import DevInfo
 
-class ChargeInfo(Cachable):
+class ChargeInfo(DevInfo):
     @property
     def current(self) -> int:
         return self.read_int_subfile("current_now", 10, 0) // 1000000
