@@ -3,7 +3,6 @@ from .ports.usb import USBPortInfo
 from .ports.charge import ChargePort
 from .ports.display import DisplayPort
 from .ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
-from math import floor
 
 BLANK_PIXEL = 0x00
 SEPARATOR_PIXEL = 0x22
@@ -60,32 +59,3 @@ class RenderInfo:
 class RenderResult:
     data: list[int] | None
     allow_sleep: bool = field(default=True)
-
-def render_charge(info: RenderInfo, input_only: bool = False) -> RenderResult | None:
-    if not info.charge:
-        return None
-
-    invert = info.matrix.id == "right"
-
-    voltage = info.charge.voltage()
-    if voltage == 0:
-        return None
-
-    current = info.charge.current()
-    online = info.charge.online()
-    if current < 0 or voltage < 0 or not online:
-        if input_only:
-            return None
-        invert = not invert
-
-    current = abs(current)
-    voltage = abs(voltage)
-
-    voltage_tens = floor(voltage / 10)
-    voltage = voltage - (voltage_tens * 10)
-
-    current_int = floor(current)
-    current_frac = current - current_int
-
-    data = make_row_bar(current_int, 2, invert) + make_row_bar(current_frac * 10.0, 1, invert) + (BLANK_ROW * 2) + make_row_bar(voltage_tens, 2, invert) + make_row_bar(voltage, 1, invert)
-    return RenderResult(data=data)

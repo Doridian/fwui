@@ -10,12 +10,15 @@ class ChargePort:
     def read_number_file(self, file: str) -> int:
         with open(path.join(self.devnode, file), "r") as f:
             return int(f.read(), 10)
-        
+
+    @property
     def current(self) -> int:
         return self.read_number_file("current_now") // 1000000
-    
+
+    @property
     def voltage(self) -> int:
         return self.read_number_file("voltage_now") // 1000000
 
+    @property
     def online(self) -> bool:
         return self.read_number_file("online") == 1

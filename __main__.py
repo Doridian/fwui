@@ -6,9 +6,9 @@ from fwui.ports.charge import ChargePort
 from fwui.ports.display import DisplayPort
 from fwui.ports.usb import USBPort
 from time import sleep
-from fwui.icons import USB2_ICON, USB3_ICON, EMPTY_ICON
+from fwui.icons import EMPTY_ICON
 from fwui.devices import DEVICE_MATCHERS
-from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge, SEPARATOR_PIXEL, BLANK_PIXEL
+from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, SEPARATOR_PIXEL, BLANK_PIXEL
 from threading import Thread
 from datetime import datetime, timedelta
 
@@ -34,6 +34,9 @@ class PortConfig:
 
     def render(self) -> list[int] | None:
         res = self._render()
+        if not res:
+            res = RenderResult(data=None)
+
         if res == self._last_render:
             allow_sleep = res.allow_sleep
         else:
@@ -45,18 +48,7 @@ class PortConfig:
 
         return res.data
 
-    def _render(self) -> RenderResult:
-        res = self._render_usb()
-        if res:
-            return res
-
-        res = render_charge(info=self.render_info)
-        if res:
-            return res
-        
-        return RenderResult(data=None)
-
-    def _render_usb(self) -> RenderResult | None:
+    def _render(self) -> RenderResult | None:
         if not self.usb_port:
             return None
 
@@ -74,17 +66,7 @@ class PortConfig:
             if res:
                 return res
 
-        if not render_info.usb:
-            return None
-
-        res = render_charge(info=render_info, input_only=True)
-        if res:
-            return res
-
-        speed = render_info.usb.speed
-        if speed and speed >= 5000:
-            return RenderResult(data=USB3_ICON)
-        return RenderResult(data=USB2_ICON)
+        return None
 
 class PortUI:
     ports: list[PortConfig]
