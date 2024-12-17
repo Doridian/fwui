@@ -3,13 +3,11 @@ from glob import glob
 from typing import overload
 
 class DevInfo:
-    _filecache: dict[str, bytes  | None]
     devpath: str
 
     def __init__(self, devpath: str):
         super().__init__()
         self.devpath = devpath
-        self._filecache = {}
 
     @overload
     def read_str_subfile(self, file: str, *, default: str) -> str: ...
@@ -23,14 +21,6 @@ class DevInfo:
         return value.decode("utf-8").strip()
 
     def read_subfile(self, file: str) -> bytes | None:
-        if file in self._filecache:
-            res = self._filecache[file]
-        else:
-            res = self._read_subfile(file)
-            self._filecache[file] = res
-        return res
-
-    def _read_subfile(self, file: str) -> bytes | None:
         devfile = path.join(self.devpath, file)
         globs = glob(devfile)
         if not globs:

@@ -1,9 +1,14 @@
 from .base import DevInfo
+from functools import cached_property
 
 class DisplayInfo(DevInfo):
-    @property
+    @cached_property
     def connected(self) -> bool:
-        return self.read_str_subfile("status") == "connected"
+        return self.status == "connected"
+
+    @cached_property
+    def status(self) -> str | None:
+        return self.read_str_subfile("status")
 
 class DisplayPort:
     display: str
@@ -14,7 +19,6 @@ class DisplayPort:
 
     def get_info(self) -> DisplayInfo | None:
         info = DisplayInfo(self.display)
-        status = info.read_str_subfile("status")
-        if not status:
+        if not info.status:
             return None
         return info

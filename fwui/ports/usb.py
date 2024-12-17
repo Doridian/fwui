@@ -1,15 +1,16 @@
 from .base import DevInfo
+from functools import cached_property
 
 class USBInfo(DevInfo):
-    @property
+    @cached_property
     def vid(self) -> int:
         return self.read_int_subfile("idVendor", base=16, default=0)
 
-    @property
+    @cached_property
     def pid(self) -> int:
         return self.read_int_subfile("idProduct", base=16, default=0)
 
-    @property
+    @cached_property
     def speed(self) -> int:
         return self.read_int_subfile("speed", default=0)
 

@@ -1,17 +1,22 @@
 from .base import DevInfo
+from functools import cached_property
 
 class ChargeInfo(DevInfo):
-    @property
+    @cached_property
     def current(self) -> int:
         return self.read_int_subfile("current_now", default=0) // 1000000
 
-    @property
+    @cached_property
     def voltage(self) -> int:
         return self.read_int_subfile("voltage_now", default=0) // 1000000
 
-    @property
+    @cached_property
     def online(self) -> bool:
         return self.read_int_subfile("online") == 1
+    
+    @cached_property
+    def usb_type(self) -> str | None:
+        return self.read_str_subfile("usb_type")
 
 class ChargePort:
     devpath: str
@@ -22,6 +27,6 @@ class ChargePort:
 
     def get_info(self) -> ChargeInfo | None:
         info = ChargeInfo(self.devpath)
-        if info.read_str_subfile("online") is None:
+        if not info.usb_type:
             return None
         return info
