@@ -2,16 +2,16 @@ from .base import DevInfo
 
 class USBInfo(DevInfo):
     @property
-    def vid(self) -> int | None:
-        return self.read_int_subfile("idVendor", 16)
+    def vid(self) -> int:
+        return self.read_int_subfile("idVendor", base=16, default=0)
 
     @property
-    def pid(self) -> int | None:
-        return self.read_int_subfile("idProduct", 16)
+    def pid(self) -> int:
+        return self.read_int_subfile("idProduct", base=16, default=0)
 
     @property
-    def speed(self) -> int | None:
-        return self.read_int_subfile("speed")
+    def speed(self) -> int:
+        return self.read_int_subfile("speed", default=0)
 
 class USBPort:
     subdevs: list[str]

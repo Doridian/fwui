@@ -3,11 +3,11 @@ from .base import DevInfo
 class ChargeInfo(DevInfo):
     @property
     def current(self) -> int:
-        return self.read_int_subfile("current_now", 10, 0) // 1000000
+        return self.read_int_subfile("current_now", default=0) // 1000000
 
     @property
     def voltage(self) -> int:
-        return self.read_int_subfile("voltage_now") // 1000000
+        return self.read_int_subfile("voltage_now", default=0) // 1000000
 
     @property
     def online(self) -> bool:

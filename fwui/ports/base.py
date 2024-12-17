@@ -40,11 +40,11 @@ class DevInfo:
             return None
 
     @overload
-    def read_int_subfile(self, file: str, base: int = 10, default: int = 0) -> int: ...
+    def read_int_subfile(self, file: str, *, base: int = 10, default: int) -> int: ...
     @overload
-    def read_int_subfile(self, file: str, base: int = 10, default: None = None) -> int | None: ...
+    def read_int_subfile(self, file: str, *, base: int = 10, default: None = None) -> int | None: ...
 
-    def read_int_subfile(self, file: str, base: int = 10, default: int | None = None) -> int | None:
+    def read_int_subfile(self, file: str, *, base: int = 10, default: int | None = None) -> int | None:
         value = self.read_subfile(file)
         if value is None or value == "":
             return default
