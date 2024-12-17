@@ -18,18 +18,22 @@ sleep_individual_ports = False
 frame_time_seconds = 1.0
 
 class PortConfig:
-    render_info: RenderInfo
     usb_port: USBPort | None
+    display_port: DisplayPort | None
+    charge_port: ChargePort | None
+    matrix: LEDMatrix
     row: int
 
     last_sleep_block: datetime
     _last_render: RenderResult | None = None
 
-    def __init__(self, render_info: RenderInfo, usb_port: USBPort | None, row: int):
+    def __init__(self, usb_port: USBPort | None, display_port: DisplayPort | None, charge_port: ChargePort | None, matrix: LEDMatrix, row: int):
         super().__init__()
-        self.render_info = render_info
+        self.charge_port = charge_port
+        self.display_port = display_port
         self.usb_port = usb_port
         self.row = row
+        self.matrix = matrix
         self.last_sleep_block = datetime.now()
 
     def render(self) -> list[int] | None:
@@ -52,12 +56,12 @@ class PortConfig:
         if not self.usb_port:
             return None
 
-        port_info = self.usb_port.get_info()
-        render_info = self.render_info
-        if port_info:
-            render_info = self.render_info.augment_usb(
-                usb=port_info,
-            )
+        render_info = RenderInfo(
+            usb=self.usb_port.get_info() if self.usb_port else None,
+            display=self.display_port.get_info() if self.display_port else None,
+            charge=self.charge_port.get_info() if self.charge_port else None,
+            matrix=self.matrix,
+        )
 
         for matcher, usbdev in DEVICE_MATCHERS:
             if not matcher.matches(render_info):
@@ -81,8 +85,8 @@ class PortUI:
         if sleep_individual_ports:
             if port.last_sleep_block + sleep_idle_seconds < datetime.now():
                 return
-        elif last_sleep_blocks.get(port.render_info.matrix, TIME_ZERO) < port.last_sleep_block:
-            last_sleep_blocks[port.render_info.matrix] = port.last_sleep_block
+        elif last_sleep_blocks.get(port.matrix, TIME_ZERO) < port.last_sleep_block:
+            last_sleep_blocks[port.matrix] = port.last_sleep_block
 
         if not data:
             data = EMPTY_ICON
@@ -117,10 +121,10 @@ class PortUI:
         last_sleep_blocks: dict[LEDMatrix, datetime] = {}
 
         for port in self.ports:
-            image_data = all_images.get(port.render_info.matrix, None)
+            image_data = all_images.get(port.matrix, None)
             if not image_data:
                 image_data = [BLANK_PIXEL] * (LED_MATRIX_COLS * LED_MATRIX_ROWS)
-                all_images[port.render_info.matrix] = image_data
+                all_images[port.matrix] = image_data
 
             t = Thread(target=self._render_port, args=(port, image_data, last_sleep_blocks))
             all_threads.append(t)
@@ -210,12 +214,9 @@ def main():
 
         if "led_matrix" in ele:
             ui_ports.append(PortConfig(
-                render_info=RenderInfo(
-                    charge=charge_port,
-                    display=display_port,
-                    matrix=LED_MATRICES[ele["led_matrix"]["id"]],
-                    usb=None,
-                ),
+                charge_port=charge_port,
+                display_port=display_port,
+                matrix=LED_MATRICES[ele["led_matrix"]["id"]],
                 usb_port=usb_port,
                 row=(ele["led_matrix"]["pos"] * PER_POS_OFFSET),
             ))

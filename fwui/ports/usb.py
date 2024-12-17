@@ -1,41 +1,6 @@
-from os import path
-from glob import glob
+from .cachable import Cachable
 
-class USBPortInfo:
-    devpath: str
-    filecache: dict[str, str  | None]
-
-    def __init__(self, devpath: str):
-        super().__init__()
-        self.devpath = devpath
-        self.filecache = {}
-
-    def read_subfile(self, file: str) -> str | None:
-        if file in self.filecache:
-            return self.filecache[file]
-        res = self._read_subfile(file)
-        self.filecache[file] = res
-        return res
-
-    def _read_subfile(self, file: str) -> str | None:
-        devfile = path.join(self.devpath, file)
-        globs = glob(devfile)
-        if not globs:
-            return None
-        devfile = globs[0]
-
-        try:
-            with open(devfile, "r") as f:
-                return f.read().strip()
-        except FileNotFoundError:
-            return None
-
-    def read_int_subfile(self, file: str, base: int = 10) -> int | None:
-        value = self.read_subfile(file)
-        if value is None:
-            return None
-        return int(value, base)
-
+class USBPortInfo(Cachable):
     @property
     def vid(self) -> int | None:
         return self.read_int_subfile("idVendor", 16)

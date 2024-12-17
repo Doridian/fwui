@@ -1,9 +1,9 @@
-from os import path
-from dataclasses import dataclass
+from .cachable import Cachable
 
-@dataclass(kw_only=True, frozen=True, eq=True)
-class DisplayPortInfo:
-    connected: bool
+class DisplayPortInfo(Cachable):
+    @property
+    def connected(self) -> bool:
+        return self.read_subfile("status") == "connected"
 
 class DisplayPort:
     display: str
@@ -12,15 +12,9 @@ class DisplayPort:
         super().__init__()
         self.display = display
 
-    def read_subfile(self, file: str) -> str:
-        try:
-            with open(path.join(self.display, file), "r") as f:
-                return f.read().strip()
-        except FileNotFoundError:
-            return ""
-
     def get_info(self) -> DisplayPortInfo | None:
-        status = self.read_subfile("status")
+        info = DisplayPortInfo(self.display)
+        status = info.read_subfile("status")
         if not status:
             return None
-        return DisplayPortInfo(connected=(status == "connected"))
+        return info

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from .ports.usb import USBPortInfo
-from .ports.charge import ChargePort
-from .ports.display import DisplayPort
+from .ports.charge import ChargePortInfo
+from .ports.display import DisplayPortInfo
 from .ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
 
 BLANK_PIXEL = 0x00
@@ -43,17 +43,9 @@ def make_multirow_bar(width: float, height: int = 1, reverse: bool = False) -> l
 @dataclass(kw_only=True, frozen=True, eq=True)
 class RenderInfo:
     usb: USBPortInfo | None
-    display: DisplayPort | None
-    charge: ChargePort | None
+    display: DisplayPortInfo | None
+    charge: ChargePortInfo | None
     matrix: LEDMatrix
-
-    def augment_usb(self, usb: USBPortInfo) -> "RenderInfo":
-        return RenderInfo(
-            usb=usb,
-            display=self.display,
-            charge=self.charge,
-            matrix=self.matrix,
-        )
 
 @dataclass(kw_only=True, frozen=True)
 class RenderResult:

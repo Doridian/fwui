@@ -72,10 +72,7 @@ class DisplayDevice(ConnectionDevice):
     def is_connected(self, info: RenderInfo) -> bool:
         if not info.display:
             return False
-        display_info = info.display.get_info()
-        if not display_info:
-            return False
-        return display_info.connected
+        return info.display.connected
 
     @override
     def render(self, info: RenderInfo) -> RenderResult | None:
