@@ -3,12 +3,12 @@ from functools import cached_property
 
 class ChargeInfo(DevInfo):
     @cached_property
-    def current(self) -> int:
-        return self.read_int_subfile("current_now", default=0) // 1000000
+    def current(self) -> float:
+        return self.read_int_subfile("current_now", default=0) / 1000000
 
     @cached_property
-    def voltage(self) -> int:
-        return self.read_int_subfile("voltage_now", default=0) // 1000000
+    def voltage(self) -> float:
+        return self.read_int_subfile("voltage_now", default=0) / 1000000
 
     @cached_property
     def online(self) -> bool:
