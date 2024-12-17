@@ -12,22 +12,22 @@ class DevInfo:
         self._filecache = {}
 
     @overload
-    def read_subfile(self, file: str, default: str) -> str: ...
+    def read_subfile(self, file: str, *, default: str) -> str: ...
     @overload
-    def read_subfile(self, file: str, default: None = None) -> str | None: ...
+    def read_subfile(self, file: str, *, default: None = None) -> str | None: ...
 
-    def read_subfile(self, file: str, default: str | None = None) -> str | None:
+    def read_subfile(self, file: str, *, default: str | None = None) -> str | None:
         if file in self._filecache:
             res = self._filecache[file]
         else:
-            res = self._read_subfile(self.devpath, file)
+            res = self._read_subfile(file)
             self._filecache[file] = res
         if res is None:
             return default
         return res
 
-    def _read_subfile(self, root: str, file: str) -> str | None:
-        devfile = path.join(root, file)
+    def _read_subfile(self, file: str) -> str | None:
+        devfile = path.join(self.devpath, file)
         globs = glob(devfile)
         if not globs:
             return None
