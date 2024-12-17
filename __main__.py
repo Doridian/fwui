@@ -93,8 +93,15 @@ class PortUI:
         super().__init__()
         self.ports = ports
 
-    def _render_port(self, port: PortConfig, image_data: list[int]) -> None:
+    def _render_port(self, port: PortConfig, image_data: list[int], last_sleep_blocks: dict[LEDMatrix, datetime]) -> None:
         data = port.render()
+
+        if sleep_individual_ports:
+            if port.last_sleep_block + sleep_idle_seconds < datetime.now():
+                return
+        elif last_sleep_blocks.get(port.render_info.matrix, TIME_ZERO) < port.last_sleep_block:
+            last_sleep_blocks[port.render_info.matrix] = port.last_sleep_block
+
         if not data:
             return
 
@@ -133,13 +140,7 @@ class PortUI:
                 image_data = [BLANK_PIXEL] * (LED_MATRIX_COLS * LED_MATRIX_ROWS)
                 all_images[port.render_info.matrix] = image_data
 
-            if sleep_individual_ports:
-                if port.last_sleep_block + sleep_idle_seconds < datetime.now():
-                    continue
-            elif last_sleep_blocks.get(port.render_info.matrix, TIME_ZERO) < port.last_sleep_block:
-                last_sleep_blocks[port.render_info.matrix] = port.last_sleep_block
-
-            t = Thread(target=self._render_port, args=(port, image_data))
+            t = Thread(target=self._render_port, args=(port, image_data, last_sleep_blocks))
             all_threads.append(t)
             t.start()
 
