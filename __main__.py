@@ -8,7 +8,7 @@ from fwui.ports.usb import USBPort
 from time import sleep
 from fwui.icons import EMPTY_ICON
 from fwui.devices import DEVICE_MATCHERS
-from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, SEPARATOR_PIXEL, BLANK_PIXEL
+from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, SEPARATOR_PIXEL, BLANK_PIXEL, BLANK_MATRIX
 from threading import Thread
 from datetime import datetime, timedelta
 
@@ -99,7 +99,7 @@ class PortUI:
             image_data[start:start+ICON_ROWS+4] = [SEPARATOR_PIXEL, BLANK_PIXEL] + data[col::9] + [BLANK_PIXEL, SEPARATOR_PIXEL]
 
     def _draw_matrix(self, matrix: LEDMatrix, image_data: list[int]) -> None:
-        if not image_data:
+        if not image_data or image_data == BLANK_MATRIX:
             if matrix.is_asleep:
                 return
 
@@ -123,7 +123,7 @@ class PortUI:
         for port in self.ports:
             image_data = all_images.get(port.matrix, None)
             if not image_data:
-                image_data = [BLANK_PIXEL] * (LED_MATRIX_COLS * LED_MATRIX_ROWS)
+                image_data = BLANK_MATRIX.copy()
                 all_images[port.matrix] = image_data
 
             t = Thread(target=self._render_port, args=(port, image_data, last_sleep_blocks))
