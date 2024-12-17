@@ -31,6 +31,8 @@ class DevInfo:
         globs = glob(devfile)
         if not globs:
             return None
+        if len(globs) > 1:
+            raise ValueError(f"Multiple files found for {devfile}")
         devfile = globs[0]
 
         try:
