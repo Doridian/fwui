@@ -135,7 +135,7 @@ class PortUI:
 
             if sleep_individual_ports:
                 if port.last_sleep_block + sleep_idle_seconds < datetime.now():
-                    image_data = None
+                    continue
             elif last_sleep_blocks.get(port.render_info.matrix, TIME_ZERO) < port.last_sleep_block:
                 last_sleep_blocks[port.render_info.matrix] = port.last_sleep_block
 
