@@ -84,6 +84,17 @@ _CROSS = parse_str_info(
     " #     # "
 )
 
+EMPTY_ICON = parse_str_info(
+    "         " +
+    "         " +
+    "         " +
+    "         " +
+    "         " +
+    "         " +
+    "         " +
+    "         "
+)
+
 def make_invalid_icon(src: list[int]) -> list[int]:
     icon = src.copy()
     for i, x in enumerate(_CROSS):

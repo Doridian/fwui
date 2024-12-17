@@ -6,7 +6,7 @@ from fwui.ports.charge import ChargePort
 from fwui.ports.display import DisplayPort
 from fwui.ports.usb import USBPort
 from time import sleep
-from fwui.icons import USB2_ICON, USB3_ICON
+from fwui.icons import USB2_ICON, USB3_ICON, EMPTY_ICON
 from fwui.devices import DEVICE_MATCHERS
 from fwui.render import RenderInfo, RenderResult, PER_POS_OFFSET, ICON_ROWS, render_charge, SEPARATOR_PIXEL, BLANK_PIXEL
 from threading import Thread
@@ -103,7 +103,7 @@ class PortUI:
             last_sleep_blocks[port.render_info.matrix] = port.last_sleep_block
 
         if not data:
-            return
+            data = EMPTY_ICON
 
         if len(data) != LED_MATRIX_COLS * ICON_ROWS:
             raise ValueError(f"Invalid icon size expected={LED_MATRIX_COLS * ICON_ROWS} actual={len(data)} data={data}")
