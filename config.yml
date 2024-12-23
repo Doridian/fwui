@@ -1,4 +1,6 @@
 ports:
+ # TODO: Try udev + ID_PATH or ID_PATH_WITH_USB_REVISION and fix it to the PCIe addresses, which are constant for sure
+
  # 1     4
  # 2     5
  # 3     6
