@@ -1,0 +1,15 @@
+[project]
+name = "fwui"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pyright>=1.1.396",
+    "pyserial>=3.5",
+    "pyyaml>=6.0.2",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
