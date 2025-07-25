@@ -82,7 +82,9 @@ class PortUI:
     def _render_port(self, port: PortConfig, image_data: list[int], last_sleep_blocks: dict[LEDMatrix, datetime]) -> None:
         data = port.render()
 
-        if sleep_individual_ports:
+        if sleep_idle_seconds is None:
+            pass
+        elif sleep_individual_ports:
             if port.last_sleep_block + sleep_idle_seconds < datetime.now():
                 return
         elif last_sleep_blocks.get(port.matrix, TIME_ZERO) < port.last_sleep_block:
@@ -137,7 +139,9 @@ class PortUI:
         for matrix, image_data in all_images.items():
             if not sleep_individual_ports:
                 last_sleep_block = last_sleep_blocks.get(matrix, TIME_ZERO)
-                if last_sleep_block and (last_sleep_block + sleep_idle_seconds < datetime.now()):
+                if sleep_idle_seconds is None:
+                    pass
+                elif last_sleep_block and (last_sleep_block + sleep_idle_seconds < datetime.now()):
                     image_data = None
             t = Thread(target=self._draw_matrix, args=(matrix, image_data))
             all_threads.append(t)
@@ -175,7 +179,10 @@ def main():
     if sleep_config:
         config_sleep_idle_seconds = sleep_config.get("idle_seconds")
         if config_sleep_idle_seconds:
-            sleep_idle_seconds = timedelta(seconds=config_sleep_idle_seconds)
+            if config_sleep_idle_seconds < 0:
+                sleep_idle_seconds = None
+            else:
+                sleep_idle_seconds = timedelta(seconds=config_sleep_idle_seconds)
         config_sleep_individual_ports = sleep_config.get("individual_ports")
         if config_sleep_individual_ports is not None:
             sleep_individual_ports = bool(config_sleep_individual_ports)

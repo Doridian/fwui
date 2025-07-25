@@ -72,5 +72,5 @@ render:
   frame_time_seconds: 0.5
 
 sleep:
-  idle_seconds: 20
+  idle_seconds: -1
   individual_ports: true
