@@ -35,6 +35,112 @@ def make_row_bar(width: float, height: int = 1, reverse: bool = False) -> list[i
         ret = ret[::-1]
     return ret
 
+ROMAN_HEIGHT = 3
+ROMAN_NUMERALS = {
+    'I':  [0xFF] * 3,
+    'V':   [0xFF, 0x00, 0xFF,
+            0xFF, 0x00, 0xFF,
+            0x00, 0xFF, 0x00],
+    'X':   [0xFF, 0x00, 0xFF,
+            0x00, 0xFF, 0x00,
+            0xFF, 0x00, 0xFF],
+    'L':   [0xFF, 0x00,
+            0xFF, 0x00,
+            0xFF, 0xFF],
+    'C':   [0xFF, 0xFF, 0xFF,
+            0xFF, 0x00, 0x00,
+            0xFF, 0xFF, 0xFF],
+    'D':   [0xFF, 0xFF, 0x00,
+            0xFF, 0x00, 0xFF,
+            0xFF, 0xFF, 0x00],
+    'M':   [0xFF, 0xFF, 0xFF,
+            0xFF, 0x00, 0xFF,
+            0xFF, 0x00, 0xFF],
+}
+ROMAN_NUMERAL_DIGITS: list[list[str]] = [
+    [
+        '',
+        'I',
+        'II',
+        'III',
+        'IV',
+        'V',
+        'VI',
+        'VII',
+        'VIII',
+        'IX',
+    ],
+    [
+        '',
+        'X',
+        'XX',
+        'XXX',
+        'XL',
+        'L',
+        'LX',
+        'LXX',
+        'LXXX',
+        'XC',
+    ],
+    [
+        '',
+        'C',
+        'CC',
+        'CCC',
+        'CD',
+        'D',
+        'DC',
+        'DCC',
+        'DCCC',
+        'CM',
+    ],
+]
+
+def __draw_numeral_char(char: str, xoffset: int, yoffset: int, data: list[int]) -> int:
+    cdata = ROMAN_NUMERALS.get(char, None)
+    if not cdata:
+        return 0
+
+    width = len(cdata) // ROMAN_HEIGHT
+
+    if xoffset > LED_MATRIX_COLS:
+        return -1
+
+    xlen = width
+    if xoffset + xlen > LED_MATRIX_COLS:
+        xlen = LED_MATRIX_COLS - xoffset
+
+    for y in range(ROMAN_HEIGHT):
+        xbase = (y + yoffset) * LED_MATRIX_COLS + xoffset
+        data[xbase:xbase + xlen] = cdata[y * width:y * width + xlen]
+
+    if xlen != width:
+        return -1
+
+    return xoffset + xlen + 1
+
+def make_roman_numeral_str(value: int, xoffset: int, yoffset: int, data: list[int]) -> bool:
+    if value <= 0:
+        return True
+
+    x = 0
+    curvalue = value
+    digitstr = ""
+    xpos = xoffset
+    while curvalue > 0:
+        digit = curvalue % 10
+        curvalue //= 10
+
+        digitstr = ROMAN_NUMERAL_DIGITS[x][digit] + digitstr
+        x += 1
+
+    for char in digitstr:
+        xpos = __draw_numeral_char(char, xpos, yoffset, data)
+        if xpos < 0:
+            return True
+
+    return False
+
 def make_multirow_bar(width: float, height: int = 1, reverse: bool = False) -> list[int]:
     res: list[int] = []
     while width > 0:

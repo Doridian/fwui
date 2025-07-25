@@ -1,8 +1,9 @@
 from typing import override
+
+from fwui.ledmatrix import LED_MATRIX_COLS
 from .icons import parse_str_info, make_invalid_icon, USB2_ICON, USB3_ICON
-from .render import RenderInfo, RenderResult, make_row_bar, BLANK_ROW
+from .render import BLANK_ROW, RenderInfo, RenderResult, make_roman_numeral_str
 from abc import ABC, abstractmethod
-from math import floor
 
 # All icons should be 9x8 pixels
 
@@ -204,6 +205,7 @@ class ChargeMatcher(DeviceMatcher):
         return True
 
 class ChargeDevice(Device):
+    xit: int = 0
     @override
     def render(self, info: RenderInfo) -> RenderResult | None:
         if not info.charge:
@@ -217,29 +219,40 @@ class ChargeDevice(Device):
 
         current = info.charge.current
         online = info.charge.online
+        incoming = True
         if current < 0 or voltage < 0 or not online:
-            invert = not invert
+            incoming = False
 
         current = abs(current)
         voltage = abs(voltage)
 
-        voltage_tens = floor(voltage / 10)
-        voltage = voltage - (voltage_tens * 10)
+        border_on_left = incoming ^ invert
 
-        current_int = floor(current)
-        current_frac = current - current_int
+        left_border_col = 0x10 if border_on_left else 0x00
+        right_border_col = 0x00 if border_on_left else 0x10
+        filled_line = [left_border_col, left_border_col, 0x00, 0x00, 0x00, 0x00, 0x00, right_border_col, right_border_col]
 
-        data = make_row_bar(current_int, 2, invert) + \
-                make_row_bar(current_frac * 10.0, 1, invert) + \
-                (BLANK_ROW * 2) + \
-                make_row_bar(voltage_tens, 2, invert) + \
-                make_row_bar(voltage, 1, invert)
+        data: list[int] = BLANK_ROW * 3 + filled_line * 2 + BLANK_ROW * 3
+
+        oflow = make_roman_numeral_str(int(voltage), 0, 0, data)
+        if oflow:
+            off = int(LED_MATRIX_COLS * 3.5) - 1
+            data[off:off+3] = [0x40, 0x40, 0x40]
+        oflow = make_roman_numeral_str(int(current), 0, 5, data)
+        if oflow:
+            off = int(LED_MATRIX_COLS * 4.5) - 1
+            data[off:off+3] = [0x40, 0x40, 0x40]
+
+        self.xit += 1
+        if self.xit > 100:
+            self.xit = 0
         return RenderResult(data=data)
 
 class AnyUSBMatcher(DeviceMatcher):
     @override
     def matches(self, info: RenderInfo) -> bool:
         return bool(info.usb)
+
 
 class AnyUSBDevice(Device):
     @override
