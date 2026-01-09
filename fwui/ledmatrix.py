@@ -5,8 +5,8 @@ LED_MATRIX_ROWS = 34
 
 class LEDMatrix:
     port: Serial
+    is_cleared: bool = False
     id: str
-    is_asleep: bool = False
 
     def __init__(self, id: str, port: str):
         super().__init__()
@@ -14,18 +14,20 @@ class LEDMatrix:
         # which do not follow any baudrate
         self.id = id
         self.port = Serial(port, timeout=5.0)
-        _ = self.port.write(b's\x7F')
         self.clear()
 
-    def fill(self, on: bool) -> None:
-        _ = self.port.write(b'w ' + (b'\xFF' if on else b'\x00'))
-
     def clear(self) -> None:
-        self.fill(False)
+        if self.is_cleared:
+            return
+        _ = self.port.write(b'w\x00')
+        _ = self.port.write(b's\x7F')
+        self.is_cleared = True
 
-    def draw(self, bitmap: bytes, blocking: bool = True, pwm: bool = False) -> None:
+    def draw(self, bitmap: bytes, blocking: bool = True, pwm: bool = True) -> None:
         if len(bitmap) != LED_MATRIX_ROWS * LED_MATRIX_COLS:
             raise ValueError(f"Bitmap must be {LED_MATRIX_ROWS * LED_MATRIX_COLS} bytes long")
+
+        self.is_cleared = False
 
         mode_char = b'm' if pwm else b'n'
         if blocking:

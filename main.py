@@ -105,9 +105,6 @@ class PortUI:
 
     def _draw_matrix(self, matrix: LEDMatrix, image_data: list[int]) -> None:
         if not image_data or image_data == BLANK_MATRIX:
-            if matrix.is_asleep:
-                return
-
             matrix.clear()
             return
 
