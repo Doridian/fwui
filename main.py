@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from yaml import safe_load as yaml_load
-from fwui.ledmatrix import LEDMatrix, LED_MATRIX_COLS, LED_MATRIX_ROWS
+from fwui.ledmatrix import LEDMatrix, LED_MATRIX_COLS
 from fwui.ports.charge import ChargePort
 from fwui.ports.display import DisplayPort
 from fwui.ports.usb import USBPort
@@ -72,6 +72,10 @@ class PortConfig:
 
         return None
 
+ICON_PREFIX = ([SEPARATOR_PIXEL] * LED_MATRIX_COLS) + ([BLANK_PIXEL] * LED_MATRIX_COLS)
+ICON_SUFFIX = ([BLANK_PIXEL] * LED_MATRIX_COLS) + ([SEPARATOR_PIXEL] * LED_MATRIX_COLS)
+ICON_ADD_ROWS = 4
+
 class PortUI:
     ports: list[PortConfig]
 
@@ -96,26 +100,18 @@ class PortUI:
         if len(data) != LED_MATRIX_COLS * ICON_ROWS:
             raise ValueError(f"Invalid icon size expected={LED_MATRIX_COLS * ICON_ROWS} actual={len(data)} data={data}")
 
-        for col in range(LED_MATRIX_COLS):
-            start = (col * LED_MATRIX_ROWS) + port.row
-            image_data[start:start+ICON_ROWS+4] = [SEPARATOR_PIXEL, BLANK_PIXEL] + data[col::9] + [BLANK_PIXEL, SEPARATOR_PIXEL]
+        start = (port.row * LED_MATRIX_COLS)
+        image_data[start:start+(LED_MATRIX_COLS * (ICON_ROWS+ICON_ADD_ROWS))] = ICON_PREFIX + data + ICON_SUFFIX
 
     def _draw_matrix(self, matrix: LEDMatrix, image_data: list[int]) -> None:
         if not image_data or image_data == BLANK_MATRIX:
             if matrix.is_asleep:
                 return
 
-            matrix.clear(sleep=True)
+            matrix.clear()
             return
 
-        matrix.wakeup()
-        #matrix.draw(bytes(image_data))
-
-        for col in range(LED_MATRIX_COLS):
-            data = image_data[col * LED_MATRIX_ROWS:(col + 1) * LED_MATRIX_ROWS]
-            matrix.stage_col(col, bytes(data))
-
-        matrix.flush_cols()
+        matrix.draw(bytes(image_data))
 
     def render(self) -> None:
         all_images: dict[LEDMatrix, list[int] | None] = {}
@@ -154,16 +150,16 @@ class PortUI:
 
 LED_MATRICES: dict[str, LEDMatrix] = {}
 
-def _clear_matrix(matrix: LEDMatrix, sleep: bool) -> None:
+def _clear_matrix(matrix: LEDMatrix) -> None:
     try:
-        matrix.clear(sleep=sleep)
+        matrix.clear()
     except:
         pass
 
-def clear_matrices(sleep: bool) -> None:
+def clear_matrices() -> None:
     all_threads: list[Thread] = []
     for matrix in LED_MATRICES.values():
-        t = Thread(target=_clear_matrix, args=(matrix, sleep))
+        t = Thread(target=_clear_matrix, args=(matrix,))
         all_threads.append(t)
         t.start()
 
@@ -200,7 +196,7 @@ def main():
 
     print("Clearing matrices...")
     for matrix in LED_MATRICES.values():
-        clear_matrices(sleep=False)
+        clear_matrices()
 
     print("Loading charge ports...")
 
@@ -241,4 +237,4 @@ if __name__ == "__main__":
     try:
         main()
     finally:
-        clear_matrices(sleep=True)
+        clear_matrices()
